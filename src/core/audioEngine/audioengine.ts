@@ -419,7 +419,7 @@ export class AudioEngine extends EventTarget {
         }
     }
     stop(source_id: string): Result<string, AudioEngineError> {
-        if (!(source_id in this.playing))
+        if (!this.playing.has(source_id))
             return Err(AudioEngineError.SpecifiedPlayingSoundNotFound);
         const id = this.playing_id.find((v) => v.source_id == source_id)
             ?.sfx_id as string;
@@ -463,8 +463,7 @@ export class AudioEngine extends EventTarget {
         return this.library.get_waveform(id, buckets);
     }
     stop_all_sfx() {
-        const keys = Object.keys(this.playing);
-        for (const key of keys) {
+        for (const key in this.playing) {
             this.stop(key);
         }
     }
