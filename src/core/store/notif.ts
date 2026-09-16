@@ -26,7 +26,7 @@ export const useEngineState = defineStore("notif", () => {
             await ProjectManager.export();
             location.reload();
         };
-        const onClick = type == "panic" ? restart : undefined;
+        const onClick = type == "panic" ? restart : () => dismissNotif(id);
         notif_queue.value.push({
             id,
             type: "critical",
