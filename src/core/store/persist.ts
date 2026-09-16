@@ -1,6 +1,6 @@
 import type { PiniaPluginContext } from "pinia";
-import { useEngineState } from "./enginestore";
 import { generateUUID } from "../util/util";
+import { useNotifState } from "./notif";
 
 const STORAGE_KEY_PREFIX = "livesfx:pref:";
 const SAVE_DEBOUNCE_MS = 300;
@@ -55,7 +55,7 @@ const persist = (storeId: string, storageKey: string, state: unknown) => {
     try {
         localStorage.setItem(storageKey, JSON.stringify(state));
     } catch (e) {
-        const store = useEngineState();
+        const store = useNotifState();
         store.notif_queue.push({
             id: generateUUID(),
             type: "warn",
