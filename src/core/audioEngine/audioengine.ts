@@ -203,7 +203,7 @@ export class AudioEngine extends EventTarget {
     private mixer: AudioMixer;
     private library: SoundLibrary;
     private ctx = new window.AudioContext();
-    private playing: Record<string, AudioBufferSourceNode>;
+    private playing: Map<string, AudioBufferSourceNode>;
     private playing_id: { source_id: string; sfx_id: string }[];
     private player: BGMPlayer;
 
@@ -212,7 +212,7 @@ export class AudioEngine extends EventTarget {
 
     constructor() {
         super();
-        this.playing = {};
+        this.playing = new Map();
         this.playing_id = [];
         this.mixer = new AudioMixer(this.ctx);
         this.library = new SoundLibrary(this.ctx);
@@ -372,7 +372,7 @@ export class AudioEngine extends EventTarget {
                     return Ok<PlayResult>({ played: false });
             }
         }
-        this.playing[source_id] = node;
+        this.playing.set(source_id, node);
         this.playing_id.push({ source_id, sfx_id: id });
         this.mixer.input(id, node);
 
@@ -387,7 +387,7 @@ export class AudioEngine extends EventTarget {
                 (value) => value.source_id == source_id,
             );
             if (index < 0) return;
-            delete this.playing[source_id];
+            this.playing.delete(source_id);
             this.playing_id.splice(index, 1);
             if (options?.onended) options.onended(id);
         };
@@ -423,8 +423,8 @@ export class AudioEngine extends EventTarget {
             return Err(AudioEngineError.SpecifiedPlayingSoundNotFound);
         const id = this.playing_id.find((v) => v.source_id == source_id)
             ?.sfx_id as string;
-        this.playing[source_id]?.stop();
-        delete this.playing[source_id];
+        this.playing.get(source_id)?.stop();
+        this.playing.delete(source_id);
         return Ok(id);
     }
     async dispose() {
@@ -473,8 +473,8 @@ export class AudioEngine extends EventTarget {
             (value) => value.sfx_id == id,
         );
         playing_Target.forEach((value) => {
-            this.playing[value.source_id]?.stop();
-            delete this.playing[value.source_id];
+            this.playing.get(value.source_id)?.stop();
+            this.playing.delete(value.source_id);
         });
         this.library.remove(id);
         this.mixer.delete_channel(id);
