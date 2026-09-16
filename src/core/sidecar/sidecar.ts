@@ -247,7 +247,10 @@ export class SideCar extends EventTarget {
         await target_peer.peer.setRemoteDescription(answer);
         if (target_peer.peer.connectionState === "connected") {
             this.mode = "host";
-            this.apply_watchdog(target_peer.id);
+            target_peer.peer.addEventListener(
+                "connectionstatechange",
+                this.apply_watchdog(target_peer.id),
+            );
             return Ok();
         }
         return new Promise<Result<void, string>>((resolve) => {
