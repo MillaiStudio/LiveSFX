@@ -580,8 +580,8 @@ export class ProjectManager extends InternalProjectManager {
         }>
     > {
         const offer = await this.sidecar.createHost();
-        if (!offer) return None();
-        return Some(offer);
+        if (!offer.ok) return None();
+        return Some({ offer: offer.value.offer, id: offer.value.id });
     }
     async join_host(
         offer: RTCSessionDescription,
