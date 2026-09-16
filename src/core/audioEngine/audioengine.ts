@@ -211,7 +211,6 @@ export class AudioEngine extends EventTarget {
     private ctx = new window.AudioContext();
     private playing: Map<source_id, playing_sound>;
     private playing_sfx_id_map: Map<sfx_id, Set<source_id>>;
-    private playing_id: { source_id: string; sfx_id: string }[];
     private player: BGMPlayer;
 
     private is_ducking: boolean;
@@ -221,7 +220,6 @@ export class AudioEngine extends EventTarget {
         super();
         this.playing = new Map();
         this.playing_sfx_id_map = new Map();
-        this.playing_id = [];
         this.mixer = new AudioMixer(this.ctx);
         this.library = new SoundLibrary(this.ctx);
         this.player = new BGMPlayer();
@@ -252,6 +250,11 @@ export class AudioEngine extends EventTarget {
         }
     }
 
+    private add_id_map(sfx_id: sfx_id, source_id: source_id) {
+        if (!this.playing_sfx_id_map.has(sfx_id))
+            this.playing_sfx_id_map.set(sfx_id, new Set());
+        this.playing_sfx_id_map.get(sfx_id)?.add(source_id);
+    }
     private resume_ctx = async () => {
         if (this.ctx.state == "suspended" || this.ctx.state == "interrupted") {
             await this.ctx.resume();
@@ -371,17 +374,19 @@ export class AudioEngine extends EventTarget {
             return Err(AudioEngineError.SoundNotFound);
 
         if (playMode >= SFXPlayMode.Restart) {
-            const playing = this.playing_id.find((v) => v.sfx_id == meta.id);
-            if (playMode == SFXPlayMode.Ignore && playing)
+            const playing_sfx_source_id = this.playing_sfx_id_map.get(id);
+            if (playMode == SFXPlayMode.Ignore && playing_sfx_source_id)
                 return Ok<PlayResult>({ played: false });
-            if (playing) {
-                this.stop(playing.source_id);
+            if (playing_sfx_source_id) {
+                playing_sfx_source_id.forEach((v) => {
+                    this.stop(v);
+                });
                 if (playMode === SFXPlayMode.Stop)
                     return Ok<PlayResult>({ played: false });
             }
         }
         this.playing.set(source_id, { node, sfx_id: id });
-        this.playing_id.push({ source_id, sfx_id: id });
+        this.add_id_map(id, source_id);
         this.mixer.input(id, node);
 
         const start = (when?: number, offset?: number, duration?: number) => {
@@ -391,12 +396,8 @@ export class AudioEngine extends EventTarget {
         };
 
         node.onended = () => {
-            const index = this.playing_id.findIndex(
-                (value) => value.source_id == source_id,
-            );
-            if (index < 0) return;
             this.playing.delete(source_id);
-            this.playing_id.splice(index, 1);
+            this.playing_sfx_id_map.get(id)?.delete(source_id);
             if (options?.onended) options.onended(id);
         };
         if (options) {
@@ -427,12 +428,14 @@ export class AudioEngine extends EventTarget {
         }
     }
     stop(source_id: string): Result<string, AudioEngineError> {
-        if (!this.playing.has(source_id))
+        const target = this.playing.get(source_id);
+        const id = target?.sfx_id;
+        if (!target || !id)
             return Err(AudioEngineError.SpecifiedPlayingSoundNotFound);
-        const id = this.playing_id.find((v) => v.source_id == source_id)
-            ?.sfx_id as string;
-        this.playing.get(source_id)?.node.stop();
+        target?.node.stop();
+        this.playing_sfx_id_map.get(id)?.delete(source_id);
         this.playing.delete(source_id);
+
         return Ok(id);
     }
     async dispose() {
@@ -476,13 +479,12 @@ export class AudioEngine extends EventTarget {
         }
     }
     discard_sound(id: string) {
-        const playing_Target = this.playing_id.filter(
-            (value) => value.sfx_id == id,
-        );
-        playing_Target.forEach((value) => {
-            this.playing.get(value.source_id)?.node.stop();
-            this.playing.delete(value.source_id);
-        });
+        const playing_source_id = this.playing_sfx_id_map.get(id);
+        if (playing_source_id)
+            playing_source_id.forEach((value) => {
+                this.playing.get(value)?.node.stop();
+                this.playing.delete(value);
+            });
         this.library.remove(id);
         this.mixer.delete_channel(id);
     }
