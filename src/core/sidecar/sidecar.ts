@@ -6,16 +6,21 @@ import type { DeckID } from "../audioEngine/audioengine";
 import { generateUUID } from "../util/util";
 const waitIceComplete = (pc: RTCPeerConnection): Promise<void> => {
     return new Promise((resolve, reject) => {
+        const cleanup = () => {
+            clearTimeout(time);
+        };
         const time = setTimeout(() => {
             reject();
-        });
+        }, 10000);
         if (pc.iceGatheringState === "complete") {
+            cleanup();
             resolve();
             return;
         }
         const listener = () => {
             if (pc.iceGatheringState === "complete") {
                 pc.removeEventListener("icegatheringstatechange", listener);
+                cleanup();
                 resolve();
             }
         };
