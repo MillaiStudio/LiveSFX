@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { useEngineState } from '@/core/store/enginestore.ts';
 import Notif from '../Notif.vue';
+import { useNotifState } from '@/core/store/notif.ts';
 
-const store = useEngineState();
+const store = useNotifState();
 </script>
 <template>
     <div class="notif_list">
