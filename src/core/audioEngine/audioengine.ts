@@ -198,12 +198,17 @@ class BGMPlayer extends EventTarget {
         this.deckB.unload();
     }
 }
+type source_id = string;
+interface playing_sound {
+    node: AudioBufferSourceNode;
+    sfx_id: string;
+}
 
 export class AudioEngine extends EventTarget {
     private mixer: AudioMixer;
     private library: SoundLibrary;
     private ctx = new window.AudioContext();
-    private playing: Map<string, AudioBufferSourceNode>;
+    private playing: Map<source_id, playing_sound>;
     private playing_id: { source_id: string; sfx_id: string }[];
     private player: BGMPlayer;
 
@@ -372,7 +377,7 @@ export class AudioEngine extends EventTarget {
                     return Ok<PlayResult>({ played: false });
             }
         }
-        this.playing.set(source_id, node);
+        this.playing.set(source_id, { node, sfx_id: id });
         this.playing_id.push({ source_id, sfx_id: id });
         this.mixer.input(id, node);
 
@@ -423,7 +428,7 @@ export class AudioEngine extends EventTarget {
             return Err(AudioEngineError.SpecifiedPlayingSoundNotFound);
         const id = this.playing_id.find((v) => v.source_id == source_id)
             ?.sfx_id as string;
-        this.playing.get(source_id)?.stop();
+        this.playing.get(source_id)?.node.stop();
         this.playing.delete(source_id);
         return Ok(id);
     }
@@ -472,7 +477,7 @@ export class AudioEngine extends EventTarget {
             (value) => value.sfx_id == id,
         );
         playing_Target.forEach((value) => {
-            this.playing.get(value.source_id)?.stop();
+            this.playing.get(value.source_id)?.node.stop();
             this.playing.delete(value.source_id);
         });
         this.library.remove(id);
