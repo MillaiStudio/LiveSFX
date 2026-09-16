@@ -134,24 +134,25 @@ export class AudioMixer {
 
     move_channel(id: string, newGroup?: string): Result<void, string> {
         const entry = this.entries[id];
-        if (!entry || entry.isGroup) return Err(EngineError.ChannelNotFound);
+        if (!entry || entry.isGroup) {
+            return Err(EngineError.ChannelNotFound);
+        }
+
         const target = newGroup ?? MIXER_MASTER_CHANNEL_ID;
-        if (entry.belongs_to === target) return Ok();
+        if (entry.belongs_to === target) {
+            return Ok();
+        }
 
-        const name = entry.channel.name;
-        const gain = entry.channel.output.gain.value;
+        const parent = this.entries[target];
+        if (!parent || !parent.isGroup) {
+            return Err(EngineError.GroupNotFound);
+        }
 
-        entry.channel.inputGain.disconnect();
         entry.channel.output.disconnect();
-        delete this.entries[id];
+        entry.channel.output.connect(parent.channel.inputGain);
 
-        const created = this.create_channel(
-            id,
-            name,
-            target === MIXER_MASTER_CHANNEL_ID ? undefined : target,
-        );
-        if (!created.ok) return Err(created.value);
-        this.set_gain(id, gain);
+        entry.belongs_to = target;
+
         return Ok();
     }
 
