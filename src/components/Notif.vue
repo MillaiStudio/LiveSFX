@@ -26,14 +26,14 @@ function handleClick() {
 </template>
 <style scoped>
 .notification-container {
+    box-shadow: 1px 1px 4px 0px var(--gray-6);
     background-color: var(--blur);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(42px);
+    -webkit-backdrop-filter: blur(42px);
     padding: 12px;
     border-radius: 12px;
     display: flex;
     gap: 7px;
-    /* 親.notif_listはpointer-events:noneで貫通させているため、要素単位で有効化する */
     pointer-events: auto;
 }
 

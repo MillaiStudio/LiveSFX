@@ -15,7 +15,7 @@ const store = useNotifState();
 .notif-list-move,
 .notif-list-enter-active,
 .notif-list-leave-active {
-    transition: all .2s ease-in-out;
+    transition: all .4s ease-in-out;
 }
 
 .notif-list-enter-from,
