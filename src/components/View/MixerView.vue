@@ -6,6 +6,7 @@ import ChannelComponent from '../Channel.vue';
 import { useEngineState } from '@/core/store/enginestore.ts';
 import { storeToRefs } from 'pinia';
 import { UNGROUPED } from '@/core/constants.ts';
+import { generateUUID } from '@/core/util/util.ts';
 
 const engine = ProjectManager;
 const store = useEngineState();
@@ -32,8 +33,8 @@ const get_gain = (id?: string) => {
             <div class="groupContainer flex" :key="groupName">
 
                 <ChannelComponent v-for="value in engine.get_group_children(groupName)" :channel-name="value.name"
-                    :id="value.id ?? ''" @update:volume="(e: number) => set_gain(e, value.id)"
-                    :initial_gain="get_gain(value.id)" />
+                    :key="value.id ?? generateUUID()" :id="value.id ?? ''"
+                    @update:volume="(e: number) => set_gain(e, value.id)" :initial_gain="get_gain(value.id)" />
             </div>
         </div>
         <div>
@@ -45,7 +46,7 @@ const get_gain = (id?: string) => {
                     @update:volume="(e: number) => set_gain(e, MIXER_MASTER_CHANNEL_ID)"
                     :initial_gain="get_gain(MIXER_MASTER_CHANNEL_ID)" />
                 <div class="divider"></div>
-                <ChannelComponent v-for="groupName in groupNames"
+                <ChannelComponent v-for="groupName in groupNames" :key="groupName"
                     :channel-name="`${groupName == UNGROUPED ? '未所属' : groupName}`" :id="groupName" class="groupFader"
                     @update:volume="(e: number) => set_gain(e, groupName)" :initial_gain="get_gain(groupName)" />
             </div>
