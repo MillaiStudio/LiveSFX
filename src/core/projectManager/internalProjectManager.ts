@@ -53,6 +53,10 @@ export class InternalProjectManager extends EventTarget {
     }
     protected render_title(prjname?: string) {
         if (prjname) this.projectname = prjname;
+        if (this.projectname == "名称未設定") {
+            document.title = "LiveSFX";
+            return;
+        }
         document.title =
             (this.stateManager.is_dirty() ? "* " : "") +
             this.projectname +
