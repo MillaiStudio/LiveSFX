@@ -119,7 +119,7 @@ export interface Connections {
 }
 
 export class SideCar extends EventTarget {
-    connections: Connections[];
+    connections: Map<string, Connections>;
     mode?: "host" | "visitor";
     device_id: string;
     name: string;
@@ -127,7 +127,7 @@ export class SideCar extends EventTarget {
         super();
         const id = generateUUID();
         this.name = (navigator.platform ?? "Unknown") + "上のLiveSFX";
-        this.connections = [];
+        this.connections = new Map();
         this.device_id = id;
     }
     private createPeer(id: string) {
@@ -139,18 +139,20 @@ export class SideCar extends EventTarget {
             connection.channel = e.channel;
             this.attachChannel(id);
         };
-        this.connections.push(connection);
+        this.connections.set(id, connection);
         return connection;
     }
     get connected_to_host() {
+        const to_host = this.connections.get(this.device_id);
         return (
-            this.connections[0]?.peer.connectionState === "connected" &&
-            this.connections[0].channel &&
-            this.connections[0]?.channel.readyState === "open"
+            to_host &&
+            to_host.peer.connectionState === "connected" &&
+            to_host.channel &&
+            to_host.channel?.readyState === "open"
         );
     }
     private attachChannel(id: string) {
-        const channel = this.connections.filter((v) => v.id == id)[0]?.channel;
+        const channel = this.connections.get(id)?.channel;
         if (!channel) return;
         const handleOpen = () => {
             if (!this.mode) this.mode = "host";
@@ -171,7 +173,7 @@ export class SideCar extends EventTarget {
 
         channel.onclose = () => {
             console.log("closed");
-            this.connections = this.connections.filter((v) => v.id !== id);
+            this.connections.delete(id);
             this.dispatchEvent(
                 new CustomEvent(SideCarEvent.Disconnect, {
                     detail: { mode: this.mode },
@@ -183,7 +185,7 @@ export class SideCar extends EventTarget {
             try {
                 const data = JSON.parse(e.data) as SideCarMessage;
                 if (data.kind == "visitor_device_info") {
-                    const target = this.connections.find((v) => v.id == id);
+                    const target = this.connections.get(id);
                     if (!target) return;
                     target.device_info = data.payload;
                     this.dispatchEvent(new Event(SideCarEvent.Update));
@@ -217,7 +219,7 @@ export class SideCar extends EventTarget {
     async joinHost(
         offer: RTCSessionDescriptionInit,
     ): Promise<Result<RTCSessionDescription, unknown>> {
-        if (this.connections.find((v) => v.id == this.device_id))
+        if (this.connections.has(this.device_id))
             this.disconnect_peer(this.device_id);
         const connection = this.createPeer(this.device_id);
         try {
@@ -227,9 +229,9 @@ export class SideCar extends EventTarget {
             await waitIceComplete(connection.peer);
             if (!connection.peer.localDescription) return Err("");
             this.mode = "visitor";
-            this.connections = this.connections.filter(
-                (v) => v.id === this.device_id,
-            );
+            const self = this.connections.get(this.device_id)!;
+            this.connections.clear();
+            this.connections.set(this.device_id, self);
             return Ok(connection.peer.localDescription);
         } catch (e) {
             return Err(e);
@@ -240,7 +242,7 @@ export class SideCar extends EventTarget {
         id: string,
         answer: RTCSessionDescriptionInit,
     ): Promise<Result<void, string>> {
-        const target_peer = this.connections.filter((v) => v.id == id)[0];
+        const target_peer = this.connections.get(id);
         if (!target_peer) return Err("Peer Not Found");
         await target_peer.peer.setRemoteDescription(answer);
         if (target_peer.peer.connectionState === "connected") {
@@ -283,7 +285,7 @@ export class SideCar extends EventTarget {
         });
     }
     apply_watchdog(id: string) {
-        const target = this.connections.find((v) => v.id == id);
+        const target = this.connections.get(id);
         const disconnect = this.disconnect_peer.bind(this);
         return function watchdog() {
             if (!target) return;
@@ -297,7 +299,7 @@ export class SideCar extends EventTarget {
     }
     send(message: SideCarMessage): Result<void, SideCarError> {
         let fails_channel = [];
-        for (const target of this.connections) {
+        for (const [_key, target] of this.connections) {
             try {
                 if (target.channel && target.channel.readyState == "open")
                     target.channel?.send(JSON.stringify(message));
@@ -315,11 +317,11 @@ export class SideCar extends EventTarget {
     }
     reset() {
         try {
-            for (const target of this.connections) {
+            for (const [_key, target] of this.connections) {
                 target.channel?.close();
                 target.peer.close();
             }
-            this.connections = [];
+            this.connections.clear();
         } catch {}
         this.mode = undefined;
     }
@@ -339,11 +341,11 @@ export class SideCar extends EventTarget {
         return Err(SideCarError.ImHostNotVisitor);
     }
     disconnect_peer(id: string) {
-        const target = this.connections.filter((v) => v.id == id)[0];
+        const target = this.connections.get(id);
         if (!target) return;
         target.channel?.close();
         target.peer.close();
-        this.connections = this.connections.filter((v) => v.id !== id);
+        this.connections.delete(id);
         this.dispatchEvent(new Event(SideCarEvent.Disconnect));
     }
 }
