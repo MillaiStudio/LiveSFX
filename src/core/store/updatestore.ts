@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
-import { useEngineState } from "./enginestore.ts";
 import { generateUUID } from "../util/util.ts";
+import { useNotifState } from "./notif.ts";
 
 export interface VersionInfo {
     version: string;
@@ -43,9 +43,9 @@ export const useUpdateStore = defineStore("update", () => {
 
         newVersion.value = info;
 
-        const engine_store = useEngineState();
+        const notif_store = useNotifState();
 
-        engine_store.notif_queue.push({
+        notif_store.notif_queue.push({
             id: generateUUID(),
             type: "info",
             title: "新しいバージョンが利用可能になりました",
@@ -73,7 +73,7 @@ export const useUpdateStore = defineStore("update", () => {
 
         checking.value = true;
 
-        const engine_store = useEngineState();
+        const notif_store = useNotifState();
 
         try {
             await registration?.update();
@@ -83,13 +83,13 @@ export const useUpdateStore = defineStore("update", () => {
             if (!found) {
                 const id = generateUUID();
 
-                engine_store.notif_queue.push({
+                notif_store.notif_queue.push({
                     id,
                     type: "info",
                     title: "最新の状態です",
                 });
 
-                setTimeout(() => engine_store.dismissNotif(id), 3000);
+                setTimeout(() => notif_store.dismissNotif(id), 3000);
             }
         } finally {
             checking.value = false;
