@@ -353,9 +353,9 @@ export class AudioEngine extends EventTarget {
         const configStore = useConfigStore();
 
         const { maxPoly } = configStore;
-        if (this.playing_id.length >= maxPoly) {
-            const oldest = this.playing_id[0];
-            if (oldest?.source_id) this.stop(oldest.source_id);
+        if (this.playing.size >= maxPoly) {
+            const oldest_key = this.playing.keys().next().value;
+            if (oldest_key) this.stop(oldest_key);
         }
         await this.resume_ctx();
         const source_id = generateUUID();
