@@ -143,10 +143,16 @@ export class AudioMixer {
             return Ok();
         }
 
-        const parent = this.entries[target];
+        let parent = this.entries[target];
+
         if (!parent || !parent.isGroup) {
-            return Err(EngineError.GroupNotFound);
+            const created = this.createGroup(target);
+            if (!created.ok) {
+                return Err(EngineError.GroupNotFound);
+            }
+            parent = this.entries[target];
         }
+        if (!parent) return Err(EngineError.GroupNotFound);
 
         entry.channel.output.disconnect();
         entry.channel.output.connect(parent.channel.inputGain);
