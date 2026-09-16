@@ -7,7 +7,7 @@ import { EngineError, EngineException } from "../types/error_types";
 import { generateUUID } from "../util/util";
 import { AudioMixerError } from "../types/err";
 
-export const useEngineState = defineStore("notif", () => {
+export const useNotifState = defineStore("notif", () => {
     const notif_queue = ref<Notificatin[]>([]);
 
     ProjectManager.addEventListener(EngineEvent.Error, (e) => {
@@ -52,6 +52,7 @@ export const useEngineState = defineStore("notif", () => {
 
     return {
         dismissNotif,
+        notif_queue,
     };
 });
 
