@@ -20,6 +20,7 @@
     --gray-6: rgb(28, 28, 30);
 
     --blur: rgba(242, 242, 247, 0.1);
+    --label-warn: var(--orange);
     --label-normal: #eee;
     --label-boring: #afafaf;
     --label-danger: var(--red);
