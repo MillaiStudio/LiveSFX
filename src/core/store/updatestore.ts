@@ -76,9 +76,22 @@ export const useUpdateStore = defineStore("update", () => {
         const notif_store = useNotifState();
 
         try {
-            await registration?.update();
+            if (!registration) {
+                const id = generateUUID();
+                notif_store.notif_queue.push({
+                    id,
+                    type: "warn",
+                    title: "更新の取得に失敗しました",
+                    message: "LiveSFXの更新を取得できませんでした",
+                });
+                setTimeout(() => {
+                    notif_store.dismissNotif(id);
+                }, 3000);
+                return;
+            }
+            await registration.update();
 
-            const found = !!(registration?.installing || registration?.waiting);
+            const found = !!(registration.installing || registration.waiting);
 
             if (!found) {
                 const id = generateUUID();
