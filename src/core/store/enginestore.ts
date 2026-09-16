@@ -56,7 +56,7 @@ export const useEngineState = defineStore("engine", () => {
     });
     ProjectManager.addEventListener(EngineEvent.SideCarEnded, () => {
         sidecar_mode.value =
-            ProjectManager.sidecar.connections.length > 0
+            ProjectManager.sidecar.connections.size > 0
                 ? sidecar_mode.value
                 : undefined;
     });
