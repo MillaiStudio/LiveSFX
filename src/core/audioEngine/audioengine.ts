@@ -199,9 +199,10 @@ class BGMPlayer extends EventTarget {
     }
 }
 type source_id = string;
+type sfx_id = string;
 interface playing_sound {
     node: AudioBufferSourceNode;
-    sfx_id: string;
+    sfx_id: sfx_id;
 }
 
 export class AudioEngine extends EventTarget {
@@ -209,6 +210,7 @@ export class AudioEngine extends EventTarget {
     private library: SoundLibrary;
     private ctx = new window.AudioContext();
     private playing: Map<source_id, playing_sound>;
+    private playing_sfx_id_map: Map<sfx_id, Set<source_id>>;
     private playing_id: { source_id: string; sfx_id: string }[];
     private player: BGMPlayer;
 
@@ -218,6 +220,7 @@ export class AudioEngine extends EventTarget {
     constructor() {
         super();
         this.playing = new Map();
+        this.playing_sfx_id_map = new Map();
         this.playing_id = [];
         this.mixer = new AudioMixer(this.ctx);
         this.library = new SoundLibrary(this.ctx);
