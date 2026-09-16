@@ -232,6 +232,10 @@ export class SideCar extends EventTarget {
             const self = this.connections.get(this.device_id)!;
             this.connections.clear();
             this.connections.set(this.device_id, self);
+            connection.peer.addEventListener(
+                "connectionstatechange",
+                this.apply_watchdog(connection.id),
+            );
             return Ok(connection.peer.localDescription);
         } catch (e) {
             return Err(e);
