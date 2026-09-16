@@ -8,6 +8,7 @@ const waitIceComplete = (pc: RTCPeerConnection): Promise<void> => {
     return new Promise((resolve, reject) => {
         const cleanup = () => {
             clearTimeout(time);
+            pc.removeEventListener("icegatheringstatechange", listener);
         };
         const time = setTimeout(() => {
             reject();
@@ -31,6 +32,7 @@ const waitIceComplete = (pc: RTCPeerConnection): Promise<void> => {
 export const SideCarError = {
     NotConnected: "noteconnected",
     ImHostNotVisitor: "imhost",
+    IceTimeOut: "icetimeout",
 } as const;
 
 export type SideCarError = (typeof SideCarError)[keyof typeof SideCarError];
@@ -208,7 +210,9 @@ export class SideCar extends EventTarget {
             }
         };
     }
-    async createHost() {
+    async createHost(): Promise<
+        Result<{ offer: RTCSessionDescription | null; id: string }, string>
+    > {
         if (this.mode !== "host") this.reset();
         const peer_id = generateUUID();
         const target = this.createPeer(peer_id);
@@ -219,9 +223,13 @@ export class SideCar extends EventTarget {
 
         const offer = await target.peer.createOffer();
         await target.peer.setLocalDescription(offer);
-        await waitIceComplete(target.peer);
+        try {
+            await waitIceComplete(target.peer);
+        } catch {
+            return Err(SideCarError.IceTimeOut);
+        }
 
-        return { offer: target.peer.localDescription, id: peer_id };
+        return Ok({ offer: target.peer.localDescription, id: peer_id });
     }
 
     async joinHost(
@@ -234,7 +242,11 @@ export class SideCar extends EventTarget {
             await connection.peer.setRemoteDescription(offer);
             const answer = await connection.peer.createAnswer();
             await connection.peer.setLocalDescription(answer);
-            await waitIceComplete(connection.peer);
+            try {
+                await waitIceComplete(connection.peer);
+            } catch {
+                return Err(SideCarError.IceTimeOut);
+            }
             if (!connection.peer.localDescription) return Err("");
             this.mode = "visitor";
             const self = this.connections.get(this.device_id)!;
