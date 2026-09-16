@@ -14,9 +14,7 @@ function handleClick() {
 }
 </script>
 <template>
-    <div class="notification-container" :class="{ clickable: !!props.onClick }"
-        :role="props.onClick ? 'button' : undefined" :tabindex="props.onClick ? 0 : undefined" @click="handleClick"
-        @keydown.enter="handleClick">
+    <div class="notification-container" @click="handleClick()">
         <div class="icon">
             <ShieldAlert v-if="props.type == 'warn'" color="var(--label-warn)" :size="32" />
             <Info v-else-if="props.type == 'info'" color="var(--label-accent)" :size="32" />
@@ -39,12 +37,9 @@ function handleClick() {
     border-radius: 12px;
     display: flex;
     gap: 7px;
-    pointer-events: auto;
+    pointer-events: all;
 }
 
-.notification-container.clickable {
-    cursor: pointer;
-}
 
 .notification-container.clickable:active {
     opacity: 0.8;
