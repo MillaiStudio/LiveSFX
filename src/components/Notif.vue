@@ -7,10 +7,9 @@ const props = defineProps<Notificatin>()
 const store = useNotifState()
 
 function handleClick() {
-    if (!props.onClick) return;
-    props.onClick();
-    // クリックされた通知はその場で読まれたとみなし、一覧から消す
     store.dismissNotif(props.id);
+    if (props.onClick)
+        props.onClick();
 }
 </script>
 <template>
