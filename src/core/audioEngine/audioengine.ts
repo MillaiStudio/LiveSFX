@@ -468,7 +468,7 @@ export class AudioEngine extends EventTarget {
         return this.library.get_waveform(id, buckets);
     }
     stop_all_sfx() {
-        for (const key in this.playing) {
+        for (const [key] of this.playing) {
             this.stop(key);
         }
     }
