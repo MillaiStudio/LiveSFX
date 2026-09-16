@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { Notificatin } from '@/core/store/enginestore_type';
-import { useEngineState } from '@/core/store/enginestore.ts';
+import { useNotifState } from '@/core/store/notif';
 
 const props = defineProps<Notificatin>()
-const store = useEngineState();
+const store = useNotifState()
 
 function handleClick() {
     if (!props.onClick) return;
@@ -13,8 +13,9 @@ function handleClick() {
 }
 </script>
 <template>
-    <div class="notification-container" :class="{ clickable: !!props.onClick }" :role="props.onClick ? 'button' : undefined"
-        :tabindex="props.onClick ? 0 : undefined" @click="handleClick" @keydown.enter="handleClick">
+    <div class="notification-container" :class="{ clickable: !!props.onClick }"
+        :role="props.onClick ? 'button' : undefined" :tabindex="props.onClick ? 0 : undefined" @click="handleClick"
+        @keydown.enter="handleClick">
         <!--実装が一通り終わったらアイコン追加-->
         <div class="icon"></div>
         <section>
