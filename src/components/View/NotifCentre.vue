@@ -5,12 +5,29 @@ import { useNotifState } from '@/core/store/notif.ts';
 const store = useNotifState();
 </script>
 <template>
-    <div class="notif_list">
-        <Notif v-for="(value) in store.notif_queue" :key="value.id" v-bind="value" />
+    <div class="notif-list">
+        <TransitionGroup name="notif-list">
+            <Notif v-for="value in store.notif_queue" :key="value.id" v-bind="value" />
+        </TransitionGroup>
     </div>
 </template>
 <style scoped>
-.notif_list {
+.notif-list-move,
+.notif-list-enter-active,
+.notif-list-leave-active {
+    transition: all .2s ease-in-out;
+}
+
+.notif-list-enter-from,
+.notif-list-leave-to {
+    transform: translateX(100%);
+}
+
+.notif-list-leave-active {
+    position: absolute;
+}
+
+.notif-list {
     position: fixed;
     width: 15rem;
     right: 12px;
