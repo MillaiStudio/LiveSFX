@@ -5,7 +5,10 @@ import type { BGMPlayerInfo } from "../store/enginestore";
 import type { DeckID } from "../audioEngine/audioengine";
 import { generateUUID } from "../util/util";
 const waitIceComplete = (pc: RTCPeerConnection): Promise<void> => {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
+        const time = setTimeout(() => {
+            reject();
+        });
         if (pc.iceGatheringState === "complete") {
             resolve();
             return;
