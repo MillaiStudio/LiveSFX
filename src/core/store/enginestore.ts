@@ -66,7 +66,7 @@ export const useEngineState = defineStore("engine", () => {
             ProjectManager.get_bgm_library();
         sfx_library.value = Object.values(sounds);
         bgm_library.value = Object.values(musics);
-        groupNames.value = [...ProjectManager.get_group_names(), UNGROUPED];
+        groupNames.value = [...ProjectManager.get_group_names()];
     };
     ProjectManager.addEventListener(
         EngineEvent.ChangedLibrary,
