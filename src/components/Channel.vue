@@ -92,6 +92,7 @@ const onPointerMove = (e: PointerEvent) => {
 const onPointerUp = (e: PointerEvent) => {
     dragging.value = false
         ; (e.target as HTMLElement).releasePointerCapture(e.pointerId)
+    emit('pointerUP')
 }
 
 const onTrackClick = (e: PointerEvent) => {
