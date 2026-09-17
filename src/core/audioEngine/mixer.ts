@@ -1,3 +1,4 @@
+import { UNGROUPED } from "../constants";
 import { AudioMixerError } from "../types/err";
 import { EngineError } from "../types/error_types";
 import { Err, Ok, type Result } from "../types/types";
@@ -48,6 +49,7 @@ export class AudioMixer {
             belongs_to: "",
             isGroup: true,
         };
+        this.createGroup(UNGROUPED);
     }
 
     private get master(): Channel {
