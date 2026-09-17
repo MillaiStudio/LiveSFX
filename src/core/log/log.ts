@@ -94,18 +94,22 @@ const log_to_indexedDB = async (log: Log) => {
         });
     }, 1000);
 };
-
+let log_stack: Log[] = [];
 const log_to_store = (log: Log) => {
-    const { log_stack } = useLog();
-    const { maxLogEntries } = useConfigStore();
+    let maxLogEntries;
+    try {
+        maxLogEntries = useConfigStore().maxLogEntries;
+    } catch {
+        maxLogEntries = 1000;
+    }
     while (log_stack.length >= maxLogEntries && log_stack.length > 0) {
         log_stack.shift();
     }
     if (maxLogEntries > 0) {
         log_stack.push(log);
     }
+    window.dispatchEvent(new Event("Logger:Logged"));
 };
-
 interface log_option {
     module?: string;
     data?: Record<string, unknown>;
