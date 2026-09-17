@@ -2,6 +2,7 @@ import { describe, expect, test } from "vitest";
 import { AudioMixer, MIXER_MASTER_CHANNEL_ID } from "../audioEngine/mixer";
 import { EngineError } from "../types/error_types";
 import { FakeNode, makeFakeContext } from "./fakeaudio";
+import { UNGROUPED } from "../constants";
 
 /**
  * AudioMixer takes its AudioContext through the constructor, so we can
@@ -56,7 +57,7 @@ describe("AudioMixer.get_group_names", () => {
     test("returns an empty list when no groups exist", () => {
         const { ctx } = makeFakeContext();
         const mixer = new AudioMixer(ctx);
-        expect(mixer.get_group_names()).toEqual([]);
+        expect(mixer.get_group_names()).toEqual([UNGROUPED]);
     });
 
     test("lists explicitly-created groups", () => {
@@ -64,14 +65,18 @@ describe("AudioMixer.get_group_names", () => {
         const mixer = new AudioMixer(ctx);
         mixer.createGroup("SFX");
         mixer.createGroup("BGM");
-        expect(mixer.get_group_names().sort()).toEqual(["BGM", "SFX"]);
+        expect(mixer.get_group_names().sort()).toEqual([
+            "BGM",
+            "SFX",
+            UNGROUPED,
+        ]);
     });
 
     test("also lists groups that were implicitly created via create_channel", () => {
         const { ctx } = makeFakeContext();
         const mixer = new AudioMixer(ctx);
         mixer.create_channel("deckA", "deckA", "BGM");
-        expect(mixer.get_group_names()).toEqual(["BGM"]);
+        expect(mixer.get_group_names()).toEqual(["BGM", UNGROUPED]);
     });
 
     test("never includes MASTER, which is tracked separately from groups", () => {

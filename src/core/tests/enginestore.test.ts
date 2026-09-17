@@ -16,7 +16,7 @@ class FakeProjectManager extends EventTarget {
         return this.bgmLibrary;
     }
     get_group_names() {
-        return this.groupNames;
+        return [...this.groupNames, UNGROUPED];
     }
     get_sidecar_mode() {
         return undefined;

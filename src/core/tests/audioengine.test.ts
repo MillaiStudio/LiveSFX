@@ -10,6 +10,7 @@ import {
     installBrowserGlobals,
     makeFakeAudioBuffer,
 } from "./fakeaudio";
+import { UNGROUPED } from "../constants";
 
 /**
  * Engine hardcodes `new window.AudioContext()` and BGMPlayer hardcodes
@@ -43,7 +44,7 @@ afterEach(() => {
 describe("Engine construction", () => {
     test("wires deckA/deckB into a BGM group via the mixer", () => {
         const { engine } = setupEngine();
-        expect(engine.get_group_names()).toEqual(["BGM"]);
+        expect(engine.get_group_names()).toEqual(["BGM", UNGROUPED]);
         const ids = engine
             .get_group_children("BGM")
             .map((c) => c.id)
