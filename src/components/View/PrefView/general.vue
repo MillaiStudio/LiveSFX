@@ -62,7 +62,8 @@ function resetSettings() {
                     <Toggle v-model="store.collecting_error_info_consent" />
                 </SettingsRow>
             </SettingsSection>
-            <SettingsSection title="その他">
+            <SettingsSection title="その他" footer="ログの最大保持数 - メモリ上に保存されるログの最大数です。大きくしすぎるとパフォーマンス上の問題が起きることがあります。">
+                <SettingsRow label="ログの最大保持数"><input type="number" v-model="store.maxLogEntries" min="1"></SettingsRow>
                 <SettingsRow label="最後に開いていたタブの記憶">
                     <Toggle v-model="store.memoryLastTab" />
                 </SettingsRow>

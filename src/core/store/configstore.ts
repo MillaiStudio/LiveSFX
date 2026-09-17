@@ -8,6 +8,7 @@ export const useConfigStore = defineStore("config", {
         enterEditModeConfirm: true,
         alertBeforeLeave: true,
         modalAnimation: true,
+        maxLogEntries: 2000,
         defaultPlayMode: SFXPlayMode.OverLap,
         maxPoly: 30,
 
