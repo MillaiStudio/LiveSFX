@@ -112,7 +112,12 @@ export class AudioMixer {
     get_group_names(): string[] {
         return Object.entries(this.entries)
             .filter(([id, e]) => e.isGroup && id !== MIXER_MASTER_CHANNEL_ID)
-            .map(([id]) => id);
+            .map(([id]) => id)
+            .sort((a, b) => {
+                if (a === UNGROUPED) return 1;
+                if (b === UNGROUPED) return -1;
+                return 0;
+            });
     }
 
     get_all_channels(): MixerChannelSnapshot[] {
