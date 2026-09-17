@@ -1,7 +1,7 @@
 import { beforeEach, afterEach, describe, expect, test, vi } from "vitest";
 import { createPinia, setActivePinia } from "pinia";
 import { AudioEngine, PlayerEvent } from "../audioEngine/audioengine";
-import { SFXPlayMode, SoundFileType } from "../audioEngine/sounds";
+import { SFXPlayMode } from "../audioEngine/sounds";
 import { AudioEngineError } from "../types/err";
 import {
     FakeAudioContext,

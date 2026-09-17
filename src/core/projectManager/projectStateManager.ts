@@ -1,4 +1,3 @@
-import { ProjectManager } from "./projectmanager";
 import { EngineEvent } from "../types/types";
 import type { InternalProjectManager } from "./internalProjectManager";
 import { useConfigStore } from "../store/configstore";

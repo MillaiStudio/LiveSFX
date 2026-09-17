@@ -1,8 +1,4 @@
-import {
-    PlayerEvent,
-    type AudioEngine,
-    type DeckID,
-} from "../audioEngine/audioengine";
+import { type AudioEngine, type DeckID } from "../audioEngine/audioengine";
 import { SFXPlayMode } from "../audioEngine/sounds";
 import projectStateManager from "../projectManager/projectStateManager";
 import { AudioMixerError } from "../types/err";

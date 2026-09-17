@@ -4,11 +4,7 @@ import { ProjectManager } from "..";
 import { type SoundMeta } from "../audioEngine/sounds";
 import { EngineEvent } from "../types/types";
 import { EngineProcState } from "./enginestore_type";
-import { EngineError, EngineException } from "../types/error_types";
-import { generateUUID } from "../util/util";
 import { PlayerEvent, type DeckID } from "../audioEngine/audioengine";
-import { UNGROUPED } from "../constants";
-import { AudioMixerError } from "../types/err";
 
 export interface BGMPlayerInfo {
     playing: boolean;
