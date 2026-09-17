@@ -7,7 +7,8 @@ import { registerSW } from "virtual:pwa-register";
 import { createPersistPlugin } from "./core/store/persist.ts";
 import { useUpdateStore } from "./core/store/updatestore.ts";
 import { setZXingModuleOverrides } from "vue-qrcode-reader";
-import { onPanic, showFatalOverlay } from "./core/util/util.ts";
+import { generateUUID, onPanic, showFatalOverlay } from "./core/util/util.ts";
+import { useNotifState } from "./core/store/notif.ts";
 
 let pinia: Pinia | null = null;
 let pendingRegistration: ServiceWorkerRegistration | undefined;
@@ -58,6 +59,15 @@ const updateSW = registerSW({
         useUpdateStore(pinia).setRegistration(registration);
     },
     onOfflineReady() {
-        console.log("Ready to offline");
+        const store = useNotifState();
+        const id = generateUUID();
+        const timer = setTimeout(() => store.dismissNotif(id), 2000);
+        store.notif_queue.push({
+            id,
+            title: "ダウンロード済み",
+            message: "LiveSFXはオフラインで使用可能です。",
+            type: "info",
+            onClick: () => clearTimeout(timer),
+        });
     },
 });
