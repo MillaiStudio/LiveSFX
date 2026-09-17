@@ -33,9 +33,7 @@ export const useEngineState = defineStore("engine", () => {
     ProjectManager.addEventListener(EngineEvent.PlaySFX, ((
         e: CustomEvent<{ id: string }>,
     ) => {
-        console.log(e.detail);
         playing_sfx.value.push(e.detail.id);
-        console.log(playing_sfx.value);
     }) as EventListener);
     ProjectManager.addEventListener(EngineEvent.StopSFX, ((
         e: CustomEvent<{ id: string }>,

@@ -60,8 +60,6 @@ const extractSoundData = async (
         if (entry.value.kind === "bgm") bgm_frag.push(entry.value.sound);
         else sfx_frag.push(entry.value.sound);
     }
-
-    console.log(`extractSoundData took : ${performance.now() - start}`);
     return Ok({ sfx: sfx_frag, bgm: bgm_frag, load_failed });
 };
 

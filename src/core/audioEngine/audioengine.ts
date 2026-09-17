@@ -78,10 +78,9 @@ class Deck extends EventTarget {
     }
 
     load(file: BGMFile) {
-        this.unload();
+        // this.unload();
 
         this.info = file;
-        console.log("Loaded");
         this.blobURL = URL.createObjectURL(file.file);
         this.player.src = this.blobURL;
 

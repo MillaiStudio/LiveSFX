@@ -182,7 +182,6 @@ export class SideCar extends EventTarget {
         channel.onopen = handleOpen;
 
         channel.onclose = () => {
-            console.log("closed");
             this.connections.delete(id);
             this.dispatchEvent(
                 new CustomEvent(SideCarEvent.Disconnect, {
@@ -205,9 +204,7 @@ export class SideCar extends EventTarget {
                         detail: data,
                     }),
                 );
-            } catch (error) {
-                console.error("Invalid SideCar message", error);
-            }
+            } catch (error) {}
         };
     }
     async createHost(): Promise<

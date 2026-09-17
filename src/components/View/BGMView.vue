@@ -69,10 +69,7 @@ const update = (value?: number) => {
 
 onMounted(() => {
     if (crossfade.value) {
-        console.log(crossfade.value.value)
         crossfade.value.value = "50"
-        console.log(crossfade.value.value)
-
         update()
     }
     applyCrossfade(50)

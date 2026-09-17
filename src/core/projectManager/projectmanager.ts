@@ -143,16 +143,9 @@ export class ProjectManager extends InternalProjectManager {
                         try {
                             const result = this.hostrelay.excec(data.payload);
                             if (result instanceof Promise) {
-                                result.catch((err) =>
-                                    console.error(
-                                        "SideCar command failed",
-                                        err,
-                                    ),
-                                );
+                                result.catch((_err) => {});
                             }
-                        } catch (err) {
-                            console.error("SideCar command failed", err);
-                        }
+                        } catch (err) {}
                         break;
                     case "requestsnapshot":
                         this.hostrelay.sendSnapShot();
@@ -356,7 +349,6 @@ export class ProjectManager extends InternalProjectManager {
         this.proc_event(EngineProcState.Proccessing);
 
         const files = await this.storageManager.load_sound_cache();
-        console.log(files);
         if (!files.ok) {
             this.error(files.value);
             this.fin_proc();
