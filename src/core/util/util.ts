@@ -1,5 +1,4 @@
 import { AnalysisTrackEvent, track } from "@/tracker";
-import { handleError } from "vue";
 import { Err } from "../types/types";
 
 export const generateUUID = (): string => {

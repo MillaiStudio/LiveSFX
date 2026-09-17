@@ -1,5 +1,3 @@
-import { generateUUID } from "./util/util";
-
 export const PROJECT_FILE_EX = "lvsf";
 export const LVSF_MAGIC_BYTE = "lvsf";
 export const HEADER_SIZE = 16;
@@ -51,4 +49,3 @@ export const AUDIO_MIME_TYPES: Record<string, string[]> = {
 } as const;
 export type AUDIO_MIME_TYPES = keyof typeof AUDIO_MIME_TYPES;
 export const UNGROUPED = "__ungrouped__";
-export const SESSION_ID = generateUUID();
