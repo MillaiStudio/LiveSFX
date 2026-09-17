@@ -9,7 +9,7 @@ watch(props, () => {
 })
 
 const gain = ref<number>(props.initial_gain ?? 1)
-const emit = defineEmits<{ 'update:volume': [number], pointerUP: [] }>()
+const emit = defineEmits<{ 'update:volume': [number], pointerUP: [number] }>()
 
 const track = ref<HTMLElement | null>(null)
 const thumbHeight = 60
@@ -92,7 +92,7 @@ const onPointerMove = (e: PointerEvent) => {
 const onPointerUp = (e: PointerEvent) => {
     dragging.value = false
         ; (e.target as HTMLElement).releasePointerCapture(e.pointerId)
-    emit('pointerUP')
+    emit('pointerUP', gain.value)
 }
 
 const onTrackClick = (e: PointerEvent) => {

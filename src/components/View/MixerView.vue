@@ -14,6 +14,9 @@ const { groupNames } = storeToRefs(store);
 
 const set_gain = (e: number, id?: string) => {
     if (!id) return;
+    engine.set_gain(id ?? MIXER_MASTER_CHANNEL_ID, e, true);
+}
+const onpointerUp = (e: number, id?: string) => {
     engine.set_gain(id ?? MIXER_MASTER_CHANNEL_ID, e);
 }
 const get_gain = (id?: string) => {
@@ -34,7 +37,8 @@ const get_gain = (id?: string) => {
 
                 <ChannelComponent v-for="value in engine.get_group_children(groupName)" :channel-name="value.name"
                     :key="value.id ?? generateUUID()" :id="value.id ?? ''"
-                    @update:volume="(e: number) => set_gain(e, value.id)" :initial_gain="get_gain(value.id)" />
+                    @update:volume="(e: number) => set_gain(e, value.id)"
+                    @pointer-u-p="(e: number) => onpointerUp(e, value.id)" :initial_gain="get_gain(value.id)" />
             </div>
         </div>
         <div>
