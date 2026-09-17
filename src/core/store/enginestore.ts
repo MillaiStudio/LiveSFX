@@ -72,6 +72,9 @@ export const useEngineState = defineStore("engine", () => {
         EngineEvent.ChangedLibrary,
         syncLibraryFromEngine,
     );
+    ProjectManager.addEventListener(EngineEvent.GainChanged, () => {
+        sfx_library.value = Object.values(ProjectManager.get_sfx_library());
+    });
     ProjectManager.addEventListener(
         EngineEvent.Initialised,
         syncLibraryFromEngine,
