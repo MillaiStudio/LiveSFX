@@ -146,6 +146,9 @@ export class UiCommandsManager extends EventTarget {
             if (id == "deckA") {
                 this.dispatchEvent(new Event(EngineEvent.CrossFaded));
             }
+            if (set_Gain_result.ok) {
+                this.dispatchEvent(new Event(EngineEvent.GainChanged));
+            }
             return set_Gain_result;
         }, !initialised);
     }
