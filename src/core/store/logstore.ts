@@ -1,8 +1,12 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import { type Log } from "../log/log";
+import { log_list, type Log } from "../log/log";
 
 export const useLog = defineStore("log", () => {
     const log_stack = ref<Log[]>([]);
+    window.addEventListener(
+        "Logger:Logged",
+        () => (log_stack.value = log_list),
+    );
     return { log_stack };
 });

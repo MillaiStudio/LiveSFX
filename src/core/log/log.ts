@@ -94,7 +94,7 @@ const log_to_indexedDB = async (log: Log) => {
         });
     }, 1000);
 };
-let log_stack: Log[] = [];
+export let log_list: Log[] = [];
 const log_to_store = (log: Log) => {
     let maxLogEntries;
     try {
@@ -102,11 +102,11 @@ const log_to_store = (log: Log) => {
     } catch {
         maxLogEntries = 1000;
     }
-    while (log_stack.length >= maxLogEntries && log_stack.length > 0) {
-        log_stack.shift();
+    while (log_list.length >= maxLogEntries && log_list.length > 0) {
+        log_list.shift();
     }
     if (maxLogEntries > 0) {
-        log_stack.push(log);
+        log_list.push(log);
     }
     window.dispatchEvent(new Event("Logger:Logged"));
 };
