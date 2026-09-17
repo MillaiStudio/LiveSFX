@@ -106,30 +106,95 @@ const log_to_store = (log: Log) => {
     }
 };
 
+interface log_option {
+    module?: string;
+    data?: Record<string, unknown>;
+    error?: unknown;
+}
+const log = (
+    level: LogLevel,
+    category: LogCategory,
+    event: string,
+    message: string,
+    option?: log_option,
+) => {
+    const log: Log = {
+        timestamp: Date.now(),
+        event,
+        session_id,
+        level,
+        category,
+        message,
+        ...option,
+    };
+    log_to_store(log);
+    log_to_indexedDB(log);
+    if (import.meta.env.DEV) console.debug(log);
+    return log;
+};
+const withModule = (module: string) => ({
+    info: (...args: Parameters<typeof logger.info>) =>
+        logger.info(args[0], args[1], args[2], {
+            ...args[3],
+            module,
+        }),
+
+    debug: (...args: Parameters<typeof logger.debug>) =>
+        logger.debug(args[0], args[1], args[2], {
+            ...args[3],
+            module,
+        }),
+
+    warn: (...args: Parameters<typeof logger.warn>) =>
+        logger.warn(args[0], args[1], args[2], {
+            ...args[3],
+            module,
+        }),
+
+    error: (...args: Parameters<typeof logger.error>) =>
+        logger.error(args[0], args[1], args[2], {
+            ...args[3],
+            module,
+        }),
+
+    fatal: (...args: Parameters<typeof logger.fatal>) =>
+        logger.fatal(args[0], args[1], args[2], {
+            ...args[3],
+            module,
+        }),
+});
 export const logger = {
-    log: (
-        level: LogLevel,
+    info: (
         category: LogCategory,
         event: string,
         message: string,
-        option?: {
-            module?: string;
-            data?: Record<string, unknown>;
-            error?: unknown;
-        },
-    ) => {
-        const log: Log = {
-            timestamp: Date.now(),
-            event,
-            session_id,
-            level,
-            category,
-            message,
-            ...option,
-        };
-        log_to_store(log);
-        log_to_indexedDB(log);
-        if (import.meta.env.DEV) console.debug(log);
-        return log;
+        option?: log_option,
+    ) => log(LogLevel.INFO, category, event, message, option),
+    debug: (
+        category: LogCategory,
+        event: string,
+        message: string,
+        option?: log_option,
+    ) => log(LogLevel.DEBUG, category, event, message, option),
+    warn: (
+        category: LogCategory,
+        event: string,
+        message: string,
+        option?: log_option,
+    ) => log(LogLevel.WARN, category, event, message, option),
+    error: (
+        category: LogCategory,
+        event: string,
+        message: string,
+        option?: log_option,
+    ) => log(LogLevel.ERROR, category, event, message, option),
+    fatal: (
+        category: LogCategory,
+        event: string,
+        message: string,
+        option?: log_option,
+    ) => log(LogLevel.FATAL, category, event, message, option),
+    module: (module: string) => {
+        return withModule(module);
     },
 };
