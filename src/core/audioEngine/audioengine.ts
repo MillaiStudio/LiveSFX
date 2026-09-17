@@ -10,6 +10,7 @@ import { generateUUID } from "../util/util";
 import { AudioEngineError, AudioMixerError } from "../types/err";
 import type { BGMPlayerInfo } from "../store/enginestore";
 import { useConfigStore } from "../store/configstore";
+import { UNGROUPED } from "../constants";
 
 export type PlayResult =
     | { played: true; soundID: string; sourceID: string }
@@ -270,7 +271,7 @@ export class AudioEngine extends EventTarget {
         if (!result.ok) return result;
 
         for (const channel of children) {
-            if (channel.id) this.library.set_group(channel.id, undefined);
+            if (channel.id) this.library.set_group(channel.id, UNGROUPED);
         }
         return Ok();
     }
