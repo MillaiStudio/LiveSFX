@@ -9,7 +9,7 @@ watch(props, () => {
 })
 
 const gain = ref<number>(props.initial_gain ?? 1)
-const emit = defineEmits<{ 'update:volume': [number] }>()
+const emit = defineEmits<{ 'update:volume': [number], pointerUP: [] }>()
 
 const track = ref<HTMLElement | null>(null)
 const thumbHeight = 60
