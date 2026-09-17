@@ -9,6 +9,7 @@ import { useUpdateStore } from "./core/store/updatestore.ts";
 import { setZXingModuleOverrides } from "vue-qrcode-reader";
 import { generateUUID, onPanic, showFatalOverlay } from "./core/util/util.ts";
 import { useNotifState } from "./core/store/notif.ts";
+import { useLog } from "./core/store/logstore.ts";
 
 let pinia: Pinia | null = null;
 let pendingRegistration: ServiceWorkerRegistration | undefined;
@@ -41,7 +42,7 @@ try {
 
 app.use(pinia);
 app.mount("#app");
-
+useLog();
 if (import.meta.env.MODE == "bin") {
     window.addEventListener("beforeunload", () => {
         fetch("/shutdown", { method: "POST" });
