@@ -1,3 +1,4 @@
+import { useConfigStore } from "../store/configstore";
 import { useLog } from "../store/logstore";
 import { generateUUID } from "../util/util";
 
@@ -94,6 +95,17 @@ const log_to_indexedDB = async (log: Log) => {
     }, 1000);
 };
 
+const log_to_store = (log: Log) => {
+    const { log_stack } = useLog();
+    const { maxLogEntries } = useConfigStore();
+    while (log_stack.length >= maxLogEntries && log_stack.length > 0) {
+        log_stack.shift();
+    }
+    if (maxLogEntries > 0) {
+        log_stack.push(log);
+    }
+};
+
 export const logger = {
     log: (
         level: LogLevel,
@@ -106,7 +118,6 @@ export const logger = {
             error?: unknown;
         },
     ) => {
-        const store = useLog();
         const log: Log = {
             timestamp: Date.now(),
             event,
@@ -116,7 +127,7 @@ export const logger = {
             message,
             ...option,
         };
-        store.log_stack.push(log);
+        log_to_store(log);
         log_to_indexedDB(log);
         if (import.meta.env.DEV) console.debug(log);
         return log;
