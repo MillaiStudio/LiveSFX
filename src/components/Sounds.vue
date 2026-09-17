@@ -236,7 +236,7 @@ const finishDrag = async (committed: boolean) => {
     if (wasActive && finalIndex !== -1) {
         if (newGroup !== null) {
             const groupResult = ProjectManager.move_sound_to_group(
-                id, newGroup === UNGROUPED ? undefined : newGroup,
+                id, newGroup,
             );
             if (!groupResult.ok) {
                 order.value = store.sfx_library.map(s => s.id);
@@ -408,8 +408,7 @@ const renameGroup = (name: string) => {
             <button @click="openCreateGroup">＋ 新しいグループ</button>
         </div>
         <div v-for="groupName in groupNames" :key="groupName" class="group-section">
-            <div class="group-header"
-                v-if="groupedOrder.get(groupName)?.length || (ui_store.ui_mode === 'edit' && groupName !== UNGROUPED)">
+            <div class="group-header" v-if="groupedOrder.get(groupName)?.length || (ui_store.ui_mode === 'edit')">
                 <h4>{{ groupLabel(groupName) }}</h4>
                 <template v-if="groupName !== UNGROUPED && ui_store.ui_mode === 'edit'">
                     <button class="rename-group" @click="renameGroup(groupName)">名前を変更</button>
