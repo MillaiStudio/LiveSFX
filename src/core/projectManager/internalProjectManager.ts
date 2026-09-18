@@ -5,10 +5,11 @@ import { EngineProcState } from "../store/enginestore_type";
 import { EngineError, EngineException } from "../types/error_types";
 import { EngineEvent } from "../types/types";
 import { check_audio_compatibility } from "../util/compatibility";
+import { gen_ios_splash } from "../util/util";
 import projectStateManager from "./projectStateManager";
 import projectStorageManager from "./projectStorageManager";
-
-const log = logger.module("internalProjectManager");
+import Logo from "@/img/logo.png";
+export const log = logger.module("internalProjectManager");
 
 export class InternalProjectManager extends EventTarget {
     protected projectname: string;
@@ -18,6 +19,7 @@ export class InternalProjectManager extends EventTarget {
     protected stateManager: projectStateManager;
     constructor() {
         super();
+
         this.projectname = "名称未設定";
         this.storageManager = new projectStorageManager();
         this.stateManager = new projectStateManager(this, {
@@ -41,6 +43,7 @@ export class InternalProjectManager extends EventTarget {
                 e.preventDefault();
             }
         });
+        gen_ios_splash();
     }
     protected error(type: EngineError | EngineException | string) {
         log.error(LogCategory.SYSTEM, "Error", "Chaught an error", {

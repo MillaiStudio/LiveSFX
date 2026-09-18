@@ -1,5 +1,6 @@
 import { AnalysisTrackEvent, track } from "@/tracker";
 import { Err } from "../types/types";
+import Logo from "@/img/logo.png";
 
 export const generateUUID = (): string => {
     if (
@@ -115,4 +116,83 @@ export const showFatalOverlay = (detail?: unknown) => {
     overlay.appendChild(message);
     overlay.appendChild(button);
     document.body.appendChild(overlay);
+};
+export const gen_ios_splash = () => {
+    if (
+        (navigator as Navigator & { standalone?: boolean }).standalone === false
+    ) {
+        requestAnimationFrame(() => {
+            const img = new Image();
+
+            img.onload = () => {
+                const canvas = document.createElement("canvas");
+
+                const screenWidth = screen.width * devicePixelRatio;
+                const screenHeight = screen.height * devicePixelRatio;
+
+                const draw = ([canvasWidth, canvasHeight]: [
+                    number,
+                    number,
+                ]): string => {
+                    canvas.width = canvasWidth;
+                    canvas.height = canvasHeight;
+
+                    const ctx = canvas.getContext("2d");
+
+                    if (!ctx) {
+                        throw new Error("Failed to get canvas context");
+                    }
+
+                    const { width: imageWidth, height: imageHeight } = img;
+                    const scale = Math.min(
+                        canvasWidth / imageWidth,
+                        canvasHeight / imageHeight,
+                    );
+
+                    ctx.drawImage(
+                        img,
+                        0,
+                        0,
+                        1,
+                        1,
+                        0,
+                        0,
+                        canvasWidth,
+                        canvasHeight,
+                    );
+
+                    ctx.drawImage(
+                        img,
+                        0,
+                        0,
+                        imageWidth,
+                        imageHeight,
+                        (canvasWidth - imageWidth * scale) / 2,
+                        (canvasHeight - imageHeight * scale) / 2,
+                        imageWidth * scale,
+                        imageHeight * scale,
+                    );
+
+                    return canvas.toDataURL();
+                };
+
+                const startupImages = [
+                    [draw([screenWidth, screenHeight]), "portrait"],
+                    [draw([screenHeight, screenWidth]), "landscape"],
+                ] as const;
+
+                document.head.insertAdjacentHTML(
+                    "beforeend",
+                    startupImages
+                        .map(
+                            ([href, orientation]) =>
+                                `<link rel="apple-touch-startup-image" href="${href}" media="(orientation:${orientation})">`,
+                        )
+                        .join(""),
+                );
+            };
+
+            img.src = Logo;
+        });
+    }
 };
