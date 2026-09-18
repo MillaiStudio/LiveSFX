@@ -24,13 +24,14 @@ setZXingModuleOverrides({
     },
 });
 
+pinia = createPinia();
 const app = createApp(App);
+app.use(pinia);
+pinia.use(createPersistPlugin(["config", "ui_state"]));
 app.config.errorHandler = (err) => {
     onPanic(err);
 };
 
-pinia = createPinia();
-pinia.use(createPersistPlugin(["config", "ui_state"]));
 useUpdateStore(pinia).setRegistration(pendingRegistration);
 
 try {
@@ -40,7 +41,6 @@ try {
     throw e;
 }
 
-app.use(pinia);
 app.mount("#app");
 useLog();
 if (import.meta.env.MODE == "bin") {
