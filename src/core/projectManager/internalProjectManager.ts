@@ -91,6 +91,11 @@ export class InternalProjectManager extends EventTarget {
             LogCategory.SYSTEM,
             "Initialise",
             "Initialising InternalProjectManager",
+            {
+                data: {
+                    appVer: __APP_VERSION__,
+                },
+            },
         );
         if (this.engine && !from_constructor) {
             log.info(
