@@ -1,4 +1,5 @@
 import { AudioEngine, PlayerEvent } from "../audioEngine/audioengine";
+import { LogCategory, logger } from "../log/log";
 import { useConfigStore } from "../store/configstore";
 import { EngineProcState } from "../store/enginestore_type";
 import { EngineError, EngineException } from "../types/error_types";
@@ -6,6 +7,8 @@ import { EngineEvent } from "../types/types";
 import { check_audio_compatibility } from "../util/compatibility";
 import projectStateManager from "./projectStateManager";
 import projectStorageManager from "./projectStorageManager";
+
+const log = logger.module("internalProjectManager");
 
 export class InternalProjectManager extends EventTarget {
     protected projectname: string;
@@ -27,13 +30,22 @@ export class InternalProjectManager extends EventTarget {
         });
         this.engine = new AudioEngine();
         window.addEventListener("beforeunload", (e) => {
+            log.info(LogCategory.SYSTEM, "Unload", "Page unload requested");
             const store = useConfigStore();
             if (this.stateManager.is_dirty() && store.alertBeforeLeave) {
+                log.info(
+                    LogCategory.SYSTEM,
+                    "PreventUnload",
+                    "Unload confirmation requested",
+                );
                 e.preventDefault();
             }
         });
     }
     protected error(type: EngineError | EngineException | string) {
+        log.error(LogCategory.SYSTEM, "Error", "Chaught an error", {
+            data: { type },
+        });
         this.dispatchEvent(
             new CustomEvent(EngineEvent.Error, {
                 detail: {
@@ -43,6 +55,9 @@ export class InternalProjectManager extends EventTarget {
         );
     }
     protected warn(type: EngineError) {
+        log.warn(LogCategory.SYSTEM, "Warn", "Warning", {
+            data: { type },
+        });
         this.dispatchEvent(
             new CustomEvent(EngineEvent.Warn, {
                 detail: {
@@ -52,6 +67,15 @@ export class InternalProjectManager extends EventTarget {
         );
     }
     protected render_title(prjname?: string) {
+        log.info(LogCategory.SYSTEM, "TitleRender", `Rendering title`, {
+            data: {
+                before: document.title,
+                after:
+                    (this.stateManager.is_dirty() ? "* " : "") +
+                    this.projectname +
+                    " - LiveSFX",
+            },
+        });
         if (prjname) this.projectname = prjname;
         if (this.projectname == "名称未設定") {
             document.title = "LiveSFX";
@@ -63,9 +87,24 @@ export class InternalProjectManager extends EventTarget {
             " - LiveSFX";
     }
     async init(filename?: string, from_constructor?: boolean) {
+        log.info(
+            LogCategory.SYSTEM,
+            "Initialise",
+            "Initialising InternalProjectManager",
+        );
         if (this.engine && !from_constructor) {
+            log.info(
+                LogCategory.SYSTEM,
+                "EngineReplace",
+                "Replacing Audio Engine",
+            );
             await this.engine.dispose();
             this.engine = new AudioEngine();
+            log.info(
+                LogCategory.SYSTEM,
+                "EngineReplace",
+                "Successed to replace audioengine",
+            );
         }
         const result = this.storageManager.initialise_storage().then((r) => {
             if (!r.ok) this.warn(EngineError.CouldNotCleanUpDB);
@@ -78,9 +117,15 @@ export class InternalProjectManager extends EventTarget {
         check_audio_compatibility();
         this.dispatchEvent(new Event(EngineEvent.Initialised));
         this.stateManager.markAsSaved();
+        log.info(
+            LogCategory.SYSTEM,
+            "Initialised",
+            "Success to init InternalProjectManager",
+        );
         await result;
     }
     protected proc_event(state: EngineProcState) {
+        log.info(LogCategory.EVENT, "Proccess", state);
         this.dispatchEvent(
             new CustomEvent(EngineEvent.Proccessing, {
                 detail: { type: state },
@@ -88,10 +133,17 @@ export class InternalProjectManager extends EventTarget {
         );
     }
     protected fin_proc() {
+        log.info(LogCategory.EVENT, "Proccess End", "Proccess has finished");
         this.dispatchEvent(new Event(EngineEvent.FinProc));
     }
     private bindAudioEngineEvents() {
         for (const event of Object.values(PlayerEvent)) {
+            log.debug(
+                LogCategory.SYSTEM,
+                "SetListeiner",
+                `Setting Listener to audioengine`,
+                { data: { target: event } },
+            );
             this.engine.addEventListener(event, (e) => {
                 this.dispatchEvent(
                     new CustomEvent(event, {
