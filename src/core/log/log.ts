@@ -11,6 +11,7 @@ export const LogLevel = {
 export type LogLevel = (typeof LogLevel)[keyof typeof LogLevel];
 
 export const LogCategory = {
+    NETWORK: "NETWORK",
     SYSTEM: "SYSTEM",
     FILE: "FILE",
     AUDIO: "AUDIO",
