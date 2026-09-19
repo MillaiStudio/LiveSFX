@@ -1,6 +1,5 @@
 import { useConfigStore } from "../store/configstore";
-import { useLog } from "../store/logstore";
-import { generateUUID } from "../util/util";
+import { generateUUID } from "../util/uuid";
 
 export const LogLevel = {
     DEBUG: "DEBUG",
