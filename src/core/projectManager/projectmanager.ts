@@ -99,7 +99,7 @@ export class ProjectManager extends InternalProjectManager {
                     }
                     if (event == EngineEvent.CrossFaded) {
                         const deckAgain = this.get_gain("deckA");
-                        if (deckAgain.ok && deckAgain.value) {
+                        if (deckAgain.ok && deckAgain.value !== undefined) {
                             this.hostrelay.send_event(event, deckAgain.value);
                         }
                     }
