@@ -70,7 +70,10 @@ export const applyGuard = (instance: object) => {
                                 }
                                 return result;
                             })
-                            .catch(onPanic);
+                            .catch((e: unknown) => {
+                                onPanic(e);
+                                return Err(e);
+                            });
                     }
                     if (import.meta.env.DEV) {
                         //console.log(
