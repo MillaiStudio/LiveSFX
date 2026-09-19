@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import Loading from '@/components/loading.vue';
 import Modal from '@/components/Modal.vue';
 import Settinglist from '@/components/settinglist.vue';
 import SettingsRow from '@/components/settingsRow.vue';
@@ -15,12 +16,19 @@ const appVersion = __APP_VERSION__;
 
 const showLicense = ref(false);
 const showChangelog = ref(false);
+const showLogView = ref(false)
 
 const licenseView = defineAsyncComponent({
-    loader: () => import('../license.vue')
+    loader: () => import('../license.vue'),
+    loadingComponent: Loading
 })
 const changelogView = defineAsyncComponent({
-    loader: () => import('../ChangelogView.vue')
+    loader: () => import('../ChangelogView.vue'),
+    loadingComponent: Loading
+})
+const logView = defineAsyncComponent({
+    loader: () => import('../LogView.vue'),
+    loadingComponent: Loading
 })
 
 function resetSettings() {
@@ -62,11 +70,14 @@ function resetSettings() {
                     <Toggle v-model="store.collecting_error_info_consent" />
                 </SettingsRow>
             </SettingsSection>
-            <SettingsSection title="その他" footer="ログの最大保持数 - メモリ上に保存されるログの最大数です。大きくしすぎるとパフォーマンス上の問題が起きることがあります。">
-                <SettingsRow label="ログの最大保持数"><input type="number" v-model="store.maxLogEntries" min="1"></SettingsRow>
+            <SettingsSection title="その他">
                 <SettingsRow label="最後に開いていたタブの記憶">
                     <Toggle v-model="store.memoryLastTab" />
                 </SettingsRow>
+            </SettingsSection>
+            <SettingsSection title="ログ" footer="ログの最大保持数 - メモリ上に保存されるログの最大数です。大きくしすぎるとパフォーマンス上の問題が起きることがあります。">
+                <SettingsRow label="ログの最大保持数"><input type="number" v-model="store.maxLogEntries" min="1"></SettingsRow>
+                <SettingsRow chevron label="ログを表示" @click="showLogView = true" />
             </SettingsSection>
             <SettingsSection title="情報">
                 <div style="text-align:  center; padding: 8px;">
@@ -91,6 +102,9 @@ function resetSettings() {
         </Modal>
         <Modal :show="showChangelog" @close="showChangelog = false" title="更新履歴">
             <changelogView />
+        </Modal>
+        <Modal :show="showLogView" @close="showLogView = false">
+            <logView />
         </Modal>
     </div>
 </template>
