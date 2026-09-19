@@ -4,16 +4,23 @@ import type { MixerChannelSnapshot } from "../audioEngine/mixer";
 import type { BGMPlayerInfo } from "../store/enginestore";
 import type { DeckID } from "../audioEngine/audioengine";
 import { generateUUID } from "../util/util";
+import { LogCategory, logger } from "../log/log";
+
+const log = logger.module("SideCar");
+const { NETWORK } = LogCategory;
 const waitIceComplete = (pc: RTCPeerConnection): Promise<void> => {
     return new Promise((resolve, reject) => {
+        log.debug(NETWORK, "IceGathering", "Gathering Ice");
         const cleanup = () => {
             clearTimeout(time);
             pc.removeEventListener("icegatheringstatechange", listener);
         };
         const time = setTimeout(() => {
+            log.warn(NETWORK, "IceGathering", "Gathering Ice timed out");
             reject();
         }, 10000);
         if (pc.iceGatheringState === "complete") {
+            log.debug(NETWORK, "IceGathering", "Done Gathering Ice");
             cleanup();
             resolve();
             return;
@@ -21,6 +28,7 @@ const waitIceComplete = (pc: RTCPeerConnection): Promise<void> => {
         const listener = () => {
             if (pc.iceGatheringState === "complete") {
                 pc.removeEventListener("icegatheringstatechange", listener);
+                log.debug(NETWORK, "IceGathering", "Done Gathering Ice");
                 cleanup();
                 resolve();
             }
@@ -141,11 +149,13 @@ export class SideCar extends EventTarget {
         this.device_id = id;
     }
     private createPeer(id: string) {
+        log.info(NETWORK, "CreatePeer", "creating peer");
         const connection: Connections = {
             id: id,
             peer: new RTCPeerConnection(),
         };
         connection.peer.ondatachannel = (e) => {
+            log.info(NETWORK, "ChannelEstablished", "channel established");
             connection.channel = e.channel;
             this.attachChannel(id);
         };
@@ -182,6 +192,9 @@ export class SideCar extends EventTarget {
         channel.onopen = handleOpen;
 
         channel.onclose = () => {
+            log.info(NETWORK, "Close", "closed sidecar connection", {
+                data: { id },
+            });
             this.connections.delete(id);
             this.dispatchEvent(
                 new CustomEvent(SideCarEvent.Disconnect, {
@@ -193,6 +206,9 @@ export class SideCar extends EventTarget {
         channel.onmessage = (e) => {
             try {
                 const data = JSON.parse(e.data) as SideCarMessage;
+                log.info(NETWORK, "Message", `Recieved message from ${id}`, {
+                    data: { data },
+                });
                 if (data.kind == "visitor_device_info") {
                     const target = this.connections.get(id);
                     if (!target) return;
@@ -204,13 +220,24 @@ export class SideCar extends EventTarget {
                         detail: data,
                     }),
                 );
-            } catch (error) {}
+            } catch (error) {
+                log.error(
+                    NETWORK,
+                    "Message",
+                    "Recieved message but can't proccess",
+                    { data: { error } },
+                );
+            }
         };
     }
     async createHost(): Promise<
         Result<{ offer: RTCSessionDescription | null; id: string }, string>
     > {
-        if (this.mode !== "host") this.reset();
+        log.info(NETWORK, "createHost", "requested create host");
+        if (this.mode !== "host") {
+            log.debug(NETWORK, "createHost", "initialising state, I'm visitor");
+            this.reset();
+        }
         const peer_id = generateUUID();
         const target = this.createPeer(peer_id);
         target.channel = target.peer.createDataChannel("LiveSFX", {
@@ -223,17 +250,25 @@ export class SideCar extends EventTarget {
         try {
             await waitIceComplete(target.peer);
         } catch {
+            log.error(NETWORK, "createHost", SideCarError.IceTimeOut);
             return Err(SideCarError.IceTimeOut);
         }
-
+        log.info(NETWORK, "createHost", "Succeded to create offer");
         return Ok({ offer: target.peer.localDescription, id: peer_id });
     }
 
     async joinHost(
         offer: RTCSessionDescriptionInit,
     ): Promise<Result<RTCSessionDescription, unknown>> {
-        if (this.connections.has(this.device_id))
+        log.info(NETWORK, "joinHost", "requested join host");
+        if (this.connections.has(this.device_id)) {
+            log.info(
+                NETWORK,
+                "joinHost",
+                "request close existing sidecar session",
+            );
             this.disconnect_peer(this.device_id);
+        }
         const connection = this.createPeer(this.device_id);
         try {
             await connection.peer.setRemoteDescription(offer);
@@ -253,6 +288,11 @@ export class SideCar extends EventTarget {
                 "connectionstatechange",
                 this.apply_watchdog(connection.id),
             );
+            log.info(
+                NETWORK,
+                "joinHost",
+                "Succeded to apply offer and create answer",
+            );
             return Ok(connection.peer.localDescription);
         } catch (e) {
             return Err(e);
@@ -263,8 +303,16 @@ export class SideCar extends EventTarget {
         id: string,
         answer: RTCSessionDescriptionInit,
     ): Promise<Result<void, string>> {
+        log.info(NETWORK, "applyAnswer", "Requested apply answer");
         const target_peer = this.connections.get(id);
-        if (!target_peer) return Err("Peer Not Found");
+        if (!target_peer) {
+            log.error(
+                NETWORK,
+                "applyAnswer",
+                "The answer is made by unknown visitor",
+            );
+            return Err("Peer Not Found");
+        }
         await target_peer.peer.setRemoteDescription(answer);
         if (target_peer.peer.connectionState === "connected") {
             this.mode = "host";
@@ -275,17 +323,32 @@ export class SideCar extends EventTarget {
             return Ok();
         }
         return new Promise<Result<void, string>>((resolve) => {
+            log.info(
+                NETWORK,
+                "applyAnswer",
+                "Waiting for establish connection",
+            );
             const handler = () => {
                 switch (target_peer.peer.connectionState) {
                     case "connected":
                         this.mode = "host";
                         cleanup();
+                        log.info(
+                            NETWORK,
+                            "applyAnswer",
+                            "Connection has been established",
+                        );
                         resolve(Ok());
                         break;
                     case "failed":
                     case "closed":
                     case "disconnected":
                         cleanup();
+                        log.error(
+                            NETWORK,
+                            "applyAnswer",
+                            "Failed to establish connection",
+                        );
                         resolve(Err("connection failed"));
                         break;
                 }
@@ -303,12 +366,14 @@ export class SideCar extends EventTarget {
             };
             const time = setTimeout(() => {
                 cleanup();
+                log.warn(NETWORK, "applAnswer", "Timed out");
                 resolve(Err("timeout"));
             }, 10000);
             target_peer.peer.addEventListener("connectionstatechange", handler);
         });
     }
     apply_watchdog(id: string) {
+        log.debug(NETWORK, "apply_watchdog", "Applying watch dog");
         const target = this.connections.get(id);
         const disconnect = this.disconnect_peer.bind(this);
         return function watchdog() {
@@ -316,6 +381,7 @@ export class SideCar extends EventTarget {
             switch (target.peer.connectionState) {
                 case "disconnected":
                 case "closed":
+                    log.info(NETWORK, "connectionDead", "Connection has dead");
                     disconnect(target.id);
                     break;
             }
@@ -323,15 +389,24 @@ export class SideCar extends EventTarget {
     }
     send(message: SideCarMessage): Result<void, SideCarError> {
         let fails_channel = [];
-        for (const [_key, target] of this.connections) {
+        log.info(NETWORK, "Send", "Sending message");
+        for (const [key, target] of this.connections) {
             try {
-                if (target.channel && target.channel.readyState == "open")
+                if (target.channel && target.channel.readyState == "open") {
+                    log.debug(NETWORK, "Send", `{send to ${key}`);
                     target.channel?.send(JSON.stringify(message));
+                }
             } catch {
+                log.warn(NETWORK, "Send", `{failed to send to ${key}`);
                 fails_channel.push(target);
             }
         }
         if (fails_channel.length > 0) {
+            log.warn(
+                NETWORK,
+                "SendFails",
+                "Can't send a message to some peers",
+            );
             fails_channel.forEach((v) => {
                 this.disconnect_peer(v.id);
             });
@@ -340,6 +415,7 @@ export class SideCar extends EventTarget {
         return Ok();
     }
     reset() {
+        log.info(NETWORK, "Reset", "Disconnect and Reset SideCar");
         try {
             for (const [_key, target] of this.connections) {
                 target.channel?.close();
@@ -354,6 +430,10 @@ export class SideCar extends EventTarget {
         command_and_payload: SideCarCommandPayload,
     ): Result<void, SideCarError> {
         if (!this.connected_to_host) return Err(SideCarError.NotConnected);
+        log.info(NETWORK, "SendCommand", "Sending command", {
+            data: command_and_payload,
+        });
+
         if (this.mode === "visitor") {
             const request: SideCarMessage = {
                 kind: "command",
@@ -365,11 +445,17 @@ export class SideCar extends EventTarget {
         return Err(SideCarError.ImHostNotVisitor);
     }
     disconnect_peer(id: string) {
+        log.info(NETWORK, "requestDisconnect", "requested disconnect");
         const target = this.connections.get(id);
-        if (!target) return;
+        if (!target) {
+            log.warn(NETWORK, "requestDisconnect", "connection not exist");
+            return;
+        }
+        log.info(NETWORK, "requestDisconnect", "Closing...");
         target.channel?.close();
         target.peer.close();
         this.connections.delete(id);
+        log.info(NETWORK, "requestDisconnect", "Closed");
         this.dispatchEvent(new Event(SideCarEvent.Disconnect));
     }
 }
