@@ -32,8 +32,6 @@ app.config.errorHandler = (err) => {
     onPanic(err);
 };
 
-useUpdateStore(pinia).setRegistration(pendingRegistration);
-
 try {
     await ProjectManager.init(undefined, true);
 } catch (e) {
