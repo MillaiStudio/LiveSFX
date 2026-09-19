@@ -161,34 +161,26 @@ export const gen_ios_splash = () => {
                         throw new Error("Failed to get canvas context");
                     }
 
+                    ctx.fillStyle = "rgb(28, 28, 30)";
+                    ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
                     const { width: imageWidth, height: imageHeight } = img;
-                    const scale = Math.min(
-                        canvasWidth / imageWidth,
-                        canvasHeight / imageHeight,
-                    );
+
+                    const scale =
+                        Math.min(
+                            canvasWidth / imageWidth,
+                            canvasHeight / imageHeight,
+                        ) * 0.35;
+
+                    const width = imageWidth * scale;
+                    const height = imageHeight * scale;
 
                     ctx.drawImage(
                         img,
-                        0,
-                        0,
-                        1,
-                        1,
-                        0,
-                        0,
-                        canvasWidth,
-                        canvasHeight,
-                    );
-
-                    ctx.drawImage(
-                        img,
-                        0,
-                        0,
-                        imageWidth,
-                        imageHeight,
-                        (canvasWidth - imageWidth * scale) / 2,
-                        (canvasHeight - imageHeight * scale) / 2,
-                        imageWidth * scale,
-                        imageHeight * scale,
+                        (canvasWidth - width) / 2,
+                        (canvasHeight - height) / 2,
+                        width,
+                        height,
                     );
 
                     return canvas.toDataURL();
