@@ -608,7 +608,7 @@ export class ProjectManager extends InternalProjectManager {
     }
     async disconnect(id?: string) {
         if (id) {
-            return this.sidecar.disconnect_peer(id);
+            return this.sidecar.disconnect_peer(id, { reason: "from ui" });
         }
         const mode = this.sidecar.mode;
         this.sidecar.reset();

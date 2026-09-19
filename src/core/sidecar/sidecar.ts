@@ -206,7 +206,7 @@ export class SideCar extends EventTarget {
         channel.onmessage = (e) => {
             try {
                 const data = JSON.parse(e.data) as SideCarMessage;
-                log.info(NETWORK, "Message", `Recieved message from ${id}`, {
+                log.info(NETWORK, "Message", `Received message from ${id}`, {
                     data: { data },
                 });
                 if (data.kind == "visitor_device_info") {
@@ -224,7 +224,7 @@ export class SideCar extends EventTarget {
                 log.error(
                     NETWORK,
                     "Message",
-                    "Recieved message but can't proccess",
+                    "Recieved message but can't procces",
                     { data: { error } },
                 );
             }
@@ -233,7 +233,7 @@ export class SideCar extends EventTarget {
     async createHost(): Promise<
         Result<{ offer: RTCSessionDescription | null; id: string }, string>
     > {
-        log.info(NETWORK, "createHost", "requested create host");
+        log.info(NETWORK, "createHost", "create host requested");
         if (this.mode !== "host") {
             log.debug(NETWORK, "createHost", "initialising state, I'm visitor");
             this.reset();
@@ -253,7 +253,7 @@ export class SideCar extends EventTarget {
             log.error(NETWORK, "createHost", SideCarError.IceTimeOut);
             return Err(SideCarError.IceTimeOut);
         }
-        log.info(NETWORK, "createHost", "Succeded to create offer");
+        log.info(NETWORK, "createHost", "Succeeded to create offer");
         return Ok({ offer: target.peer.localDescription, id: peer_id });
     }
 
@@ -267,7 +267,7 @@ export class SideCar extends EventTarget {
                 "joinHost",
                 "request close existing sidecar session",
             );
-            this.disconnect_peer(this.device_id);
+            this.disconnect_peer(this.device_id, { reason: "being visitor" });
         }
         const connection = this.createPeer(this.device_id);
         try {
@@ -291,7 +291,7 @@ export class SideCar extends EventTarget {
             log.info(
                 NETWORK,
                 "joinHost",
-                "Succeded to apply offer and create answer",
+                "Succeeded to apply offer and create answer",
             );
             return Ok(connection.peer.localDescription);
         } catch (e) {
@@ -309,7 +309,7 @@ export class SideCar extends EventTarget {
             log.error(
                 NETWORK,
                 "applyAnswer",
-                "The answer is made by unknown visitor",
+                "Answer received from unknown visitor",
             );
             return Err("Peer Not Found");
         }
@@ -326,7 +326,7 @@ export class SideCar extends EventTarget {
             log.info(
                 NETWORK,
                 "applyAnswer",
-                "Waiting for establish connection",
+                "Waiting for connection to be establish",
             );
             const handler = () => {
                 switch (target_peer.peer.connectionState) {
@@ -366,7 +366,7 @@ export class SideCar extends EventTarget {
             };
             const time = setTimeout(() => {
                 cleanup();
-                log.warn(NETWORK, "applAnswer", "Timed out");
+                log.warn(NETWORK, "applyAnswer", "Timed out");
                 resolve(Err("timeout"));
             }, 10000);
             target_peer.peer.addEventListener("connectionstatechange", handler);
@@ -381,7 +381,7 @@ export class SideCar extends EventTarget {
             switch (target.peer.connectionState) {
                 case "disconnected":
                 case "closed":
-                    log.info(NETWORK, "connectionDead", "Connection has dead");
+                    log.info(NETWORK, "connectionDead", "Connection is dead");
                     disconnect(target.id);
                     break;
             }
@@ -408,7 +408,7 @@ export class SideCar extends EventTarget {
                 "Can't send a message to some peers",
             );
             fails_channel.forEach((v) => {
-                this.disconnect_peer(v.id);
+                this.disconnect_peer(v.id, { reason: "dead_peer" });
             });
             return Err(SideCarError.NotConnected);
         }
@@ -444,8 +444,10 @@ export class SideCar extends EventTarget {
         }
         return Err(SideCarError.ImHostNotVisitor);
     }
-    disconnect_peer(id: string) {
-        log.info(NETWORK, "requestDisconnect", "requested disconnect");
+    disconnect_peer(id: string, options?: { reason?: string }) {
+        log.info(NETWORK, "requestDisconnect", "requested disconnect", {
+            data: { reason: options?.reason },
+        });
         const target = this.connections.get(id);
         if (!target) {
             log.warn(NETWORK, "requestDisconnect", "connection not exist");
