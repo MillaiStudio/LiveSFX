@@ -5,10 +5,8 @@ import { EngineProcState } from "../store/enginestore_type";
 import { EngineError, EngineException } from "../types/error_types";
 import { EngineEvent } from "../types/types";
 import { check_audio_compatibility } from "../util/compatibility";
-import { gen_ios_splash } from "../util/util";
 import projectStateManager from "./projectStateManager";
 import projectStorageManager from "./projectStorageManager";
-import Logo from "@/img/logo.png";
 export const log = logger.module("internalProjectManager");
 
 export class InternalProjectManager extends EventTarget {
@@ -43,7 +41,6 @@ export class InternalProjectManager extends EventTarget {
                 e.preventDefault();
             }
         });
-        gen_ios_splash();
     }
     protected error(type: EngineError | EngineException | string) {
         log.error(LogCategory.SYSTEM, "Error", "Chaught an error", {
