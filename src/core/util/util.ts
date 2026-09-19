@@ -1,6 +1,7 @@
 import { AnalysisTrackEvent, track } from "@/tracker";
 import { Err } from "../types/types";
 import Logo from "@/img/logo.png";
+import { LogCategory, logger } from "../log/log";
 
 export const generateUUID = (): string => {
     if (
@@ -63,26 +64,40 @@ export const applyGuard = (instance: object) => {
                     if (result && typeof result.then === "function") {
                         return result
                             .then((result: unknown) => {
-                                if (import.meta.env.DEV) {
-                                    //console.log(
-                                    //    `${key} tooks : ${performance.now() - start}ms`,
-                                    //);
-                                }
+                                logger.debug(
+                                    LogCategory.SYSTEM,
+                                    "Done",
+                                    `${key} tooks : ${performance.now() - start}ms`,
+                                );
                                 return result;
                             })
                             .catch((e: unknown) => {
                                 onPanic(e);
+                                logger.error(
+                                    LogCategory.SYSTEM,
+                                    "Error",
+                                    "ProjectManager caught error",
+                                    { data: { e } },
+                                );
                                 return Err(e);
                             });
                     }
-                    if (import.meta.env.DEV) {
-                        //console.log(
-                        //   `${key} tooks : ${performance.now() - start}ms`,
-                        //);
-                    }
+
+                    logger.debug(
+                        LogCategory.SYSTEM,
+                        "Done",
+                        `${key} tooks : ${performance.now() - start}ms`,
+                    );
+
                     return result;
                 } catch (e) {
                     onPanic(e);
+                    logger.error(
+                        LogCategory.SYSTEM,
+                        "Error",
+                        "ProjectManager caught error",
+                        { data: { e } },
+                    );
                     return Err(e);
                 }
             };
