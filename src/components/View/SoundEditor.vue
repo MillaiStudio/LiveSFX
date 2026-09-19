@@ -6,9 +6,9 @@ import { SFXPlayMode } from '@/core/audioEngine/sounds.ts';
 import SettingsSection from '../settingsSection.vue';
 import Settinglist from '../settinglist.vue';
 import SettingsRow from '../settingsRow.vue';
+import { UNGROUPED } from '@/core/constants.ts';
 
 const props = defineProps<{ soundId: string }>();
-const store = useEngineState()
 const filename = ref();
 
 const waveformEl = ref<HTMLDivElement | null>(null);
@@ -28,7 +28,6 @@ let playResetTimer: number | null = null;
 
 const playbackOption = ref<SFXPlayMode>(SFXPlayMode.OverLap);
 
-const UNGROUPED = '';
 const NEW_GROUP = '__new__';
 const selectedGroup = ref<string>(UNGROUPED);
 const newGroupName = ref('');
@@ -284,8 +283,7 @@ const deleteSFX = () => {
                 </SettingsRow>
                 <SettingsRow label="グループ">
                     <select name="GroupOption" v-model="selectedGroup">
-                        <option :value="UNGROUPED">未分類</option>
-                        <option v-for="g in groupOptions" :key="g" :value="g">{{ g }}</option>
+                        <option v-for="g in groupOptions" :key="g" :value="g">{{ g == UNGROUPED ? '未分類' : g }}</option>
                     </select>
                 </SettingsRow>
             </SettingsSection>
