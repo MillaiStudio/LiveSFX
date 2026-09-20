@@ -16,10 +16,11 @@ export const LogCategory = {
     FILE: "FILE",
     AUDIO: "AUDIO",
     EVENT: "EVENT",
-};
+} as const;
 export type LogCategory = (typeof LogCategory)[keyof typeof LogCategory];
 
 export interface Log {
+    id: string;
     timestamp: number;
     session_id: string;
 
@@ -123,6 +124,7 @@ const log = (
     option?: log_option,
 ) => {
     const log: Log = {
+        id: generateUUID(),
         timestamp: Date.now(),
         event,
         session_id,
