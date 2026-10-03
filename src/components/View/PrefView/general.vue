@@ -7,6 +7,7 @@ import SettingsSection from '@/components/settingsSection.vue';
 import Toggle from '@/components/toggle.vue';
 import { useConfigStore } from '@/core/store/configstore.ts';
 import { useUpdateStore } from '@/core/store/updatestore.ts';
+import { SquareArrowOutUpRight } from '@lucide/vue';
 import { defineAsyncComponent, ref } from 'vue';
 
 const store = useConfigStore()
@@ -85,6 +86,11 @@ function resetSettings() {
                     <h2>LiveSFX</h2>
                     <small>v{{ appVersion }}</small><br>
                     <small>This project is licensed under the ISC License</small>
+                    <br>
+                    <a href="https://github.com/MillaiStudio/LiveSFX" target="_blank" rel="noopener noreferrer">
+                        GitHub
+                        <SquareArrowOutUpRight :size="12" />
+                    </a>
                 </div>
                 <SettingsRow v-if="updateStore.hasPendingUpdate" :label="`アップデート (v${updateStore.newVersion?.version})`"
                     chevron @click="updateStore.showUpdateModal = true" />
@@ -103,7 +109,7 @@ function resetSettings() {
         <Modal :show="showChangelog" @close="showChangelog = false" title="更新履歴">
             <changelogView />
         </Modal>
-        <Modal :show="showLogView" @close="showLogView = false">
+        <Modal :show="showLogView" @close="showLogView = false" :fixed_size="true">
             <logView />
         </Modal>
     </div>

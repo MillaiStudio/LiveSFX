@@ -6,7 +6,7 @@ const store = useConfigStore();
 
 const emit = defineEmits(['close'])
 
-const props = defineProps<{ title?: string, show: boolean }>()
+const props = defineProps<{ title?: string, show: boolean, fixed_size?: boolean }>()
 const outer = useTemplateRef('outer')
 const clicked = (e: MouseEvent) => {
     const clicked_outer = outer.value == e.target
@@ -16,7 +16,7 @@ const clicked = (e: MouseEvent) => {
 <template>
     <Transition :css="store.modalAnimation">
         <div class="full" v-if="props.show" @click="e => clicked(e)" ref="outer">
-            <div class="dialog">
+            <div class="dialog" :class="{ fixed_size: fixed_size }">
                 <header>
                     <div>
                         <h3>{{ props.title }}</h3>
@@ -81,6 +81,9 @@ header {
     flex-direction: column;
 }
 
+.fixed_size {
+    height: clamp(400px, 600px, 100svh);
+}
 
 .v-enter-active,
 .v-leave-active {
