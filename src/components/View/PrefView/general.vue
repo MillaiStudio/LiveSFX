@@ -91,6 +91,14 @@ function resetSettings() {
                         GitHub
                         <SquareArrowOutUpRight :size="12" />
                     </a>
+                    <div style="display: flex; gap:12px; justify-content: center;">
+                        <a href="https://ocelot2024.folita.me/" target="_blank" rel="noopener noreferrer">folita.me
+                            <SquareArrowOutUpRight :size="12" />
+                        </a>
+                        <a href="https://twitter.com/rigel_makao?mx=1" target="_blank" rel="noopener noreferrer">Twitter
+                            <SquareArrowOutUpRight :size="12" />
+                        </a>
+                    </div>
                 </div>
                 <SettingsRow v-if="updateStore.hasPendingUpdate" :label="`アップデート (v${updateStore.newVersion?.version})`"
                     chevron @click="updateStore.showUpdateModal = true" />
