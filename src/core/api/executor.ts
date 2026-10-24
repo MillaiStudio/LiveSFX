@@ -4,10 +4,6 @@ type Handler<I, O> = (input: I) => O | Promise<O>;
 
 interface CommandProc<I, O> {
     hanlder: Handler<I, O>;
-    hooks?: {
-        beforeRun?: (input: I, preventDefault: () => void) => void;
-        afterRun?: (input: I) => void;
-    };
 }
 
 export class Executor {
@@ -24,13 +20,7 @@ export class Executor {
         if (!proc || !proc.hanlder) {
             throw new Error(`Handler not registered: ${command.name}`);
         }
-        const hooks = proc.hooks;
-        if (!!hooks && hooks.beforeRun) {
-            const preventDefault = () => (run = false);
-            res = hooks.beforeRun(input, preventDefault);
-        }
         if (run) res = await proc.hanlder(input);
-        if (!!hooks && hooks.afterRun) hooks.afterRun(input);
         return await res;
     }
 }
