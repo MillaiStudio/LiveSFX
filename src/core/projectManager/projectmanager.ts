@@ -37,6 +37,7 @@ import {
 import { SideCarHostRelay } from "../sidecar/sidecarHost";
 import { SideCarVisitorRelay } from "../sidecar/sidecarVisitor";
 import { LogCategory, logger } from "../log/log";
+import { Executor } from "../api/executor";
 
 const log = logger.module("ProjectManager");
 
@@ -45,9 +46,11 @@ export class ProjectManager extends InternalProjectManager {
     sidecar: SideCar;
     hostrelay: SideCarHostRelay;
     visitorrelay: SideCarVisitorRelay;
+    executor: Executor;
     constructor() {
         super();
         log.info(LogCategory.SYSTEM, "Start", "Initialising ProjectManager");
+        this.executor = new Executor();
         applyGuard(this);
         this.commands = new UiCommandsManager(
             this.engine,
