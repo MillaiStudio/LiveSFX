@@ -7,6 +7,7 @@ import Modal from '../Modal.vue';
 
 import { UNGROUPED } from '@/core/constants.ts';
 import { useUiState } from '@/core/store/ui_state.ts';
+import { EngineCommands } from '@/core/audioEngine/commands.ts';
 
 const selectedSound = ref();
 const store = useEngineState();
@@ -345,7 +346,7 @@ const onClick = async (id: string) => {
     }
     const is_live = ui_store.ui_mode == "live";
     if (is_live) {
-        await ProjectManager.play(id)
+        await ProjectManager.run(EngineCommands.play, { id })
     } else {
         selectedSound.value = id;
     }

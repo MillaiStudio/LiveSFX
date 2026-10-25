@@ -402,25 +402,6 @@ export class ProjectManager extends InternalProjectManager {
         this.fin_proc();
     }
 
-    play(id: string, options?: { start?: number; end?: number }) {
-        if (this.sidecar.mode == "visitor")
-            return this.sidecar.send_command({
-                cmd: SideCarCommand.Play,
-                id,
-                options,
-            });
-        return this.commands.play(id, options);
-    }
-
-    stop(source_id: string) {
-        if (this.sidecar.mode == "visitor")
-            return this.sidecar.send_command({
-                cmd: SideCarCommand.Stop,
-                source_id,
-            });
-        return this.commands.stop(source_id);
-    }
-
     get_sfx_library() {
         if (this.sidecar.mode == "visitor")
             return this.visitorrelay.get_sfx_library();
@@ -439,13 +420,6 @@ export class ProjectManager extends InternalProjectManager {
     }
     get_soundinfo(id: string) {
         return this.commands.get_soundinfo(id);
-    }
-    stop_all_sfx() {
-        if (this.sidecar.mode == "visitor")
-            return this.sidecar.send_command({
-                cmd: SideCarCommand.StopAllSfx,
-            });
-        return this.commands.stop_all_sfx();
     }
     get_group_children(parent: string) {
         if (this.sidecar.mode == "visitor")

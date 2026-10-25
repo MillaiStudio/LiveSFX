@@ -7,6 +7,7 @@ import SettingsSection from '../settingsSection.vue';
 import Settinglist from '../settinglist.vue';
 import SettingsRow from '../settingsRow.vue';
 import { UNGROUPED } from '@/core/constants.ts';
+import { EngineCommands } from '@/core/audioEngine/commands.ts';
 
 const props = defineProps<{ soundId: string }>();
 const filename = ref();
@@ -146,7 +147,7 @@ const stop_preview = () => {
         playResetTimer = null;
     }
     if (activeSourceId.value) {
-        ProjectManager.stop(activeSourceId.value);
+        ProjectManager.run(EngineCommands.stop, { source_id: activeSourceId.value });
         activeSourceId.value = null;
     }
     isPlaying.value = false;
@@ -159,9 +160,11 @@ const toggle_play = async () => {
     }
 
     clamp_trim();
-    const result = await ProjectManager.play(props.soundId, {
-        start: trimStart.value,
-        end: trimEnd.value,
+    const result = await ProjectManager.run(EngineCommands.play, {
+        id: props.soundId, options: {
+            start: trimStart.value,
+            end: trimEnd.value,
+        }
     });
     if (!result.ok) return;
     if (!('value' in result)) return;

@@ -25,11 +25,17 @@ const get_gain = (id?: string) => {
     if (!result.ok) return 1
     return result.value ?? 1
 }
+
+const visibleGroupNames = computed(() =>
+    groupNames.value.filter(
+        v => v !== UNGROUPED && v !== 'BGM'
+    )
+);
 </script>
 
 <template>
     <div class="mixer flex">
-        <div v-for="groupName in groupNames.filter(v => ![UNGROUPED, 'BGM'].includes(v))" :key="groupName">
+        <div v-for="groupName in visibleGroupNames" :key="groupName">
             <div class="groupName" style="margin-top: 24px;">
                 <p>{{ groupName }}</p>
             </div>
