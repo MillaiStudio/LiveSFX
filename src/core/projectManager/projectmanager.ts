@@ -38,6 +38,8 @@ import { SideCarHostRelay } from "../sidecar/sidecarHost";
 import { SideCarVisitorRelay } from "../sidecar/sidecarVisitor";
 import { LogCategory, logger } from "../log/log";
 import { Executor } from "../api/executor";
+import { SetAudioEngineCommands } from "../audioEngine/commands";
+import type { Command } from "../api/commands";
 
 const log = logger.module("ProjectManager");
 
@@ -72,6 +74,7 @@ export class ProjectManager extends InternalProjectManager {
             },
         );
         this.applyEvent();
+        this.set_command();
         log.info(
             LogCategory.SYSTEM,
             "End",
@@ -166,7 +169,9 @@ export class ProjectManager extends InternalProjectManager {
             },
         );
     }
-
+    private set_command() {
+        SetAudioEngineCommands(this.executor, this.engine);
+    }
     private checkStorage(): boolean {
         if (!this.storageManager.is_initialised()) {
             this.error(EngineError.StorageNotReady);
@@ -634,5 +639,8 @@ export class ProjectManager extends InternalProjectManager {
             id,
             device_info: connection.device_info,
         }));
+    }
+    async run<I, O>(command: Command<I, O>, input: I): Promise<O> {
+        return this.executor.run(command, input);
     }
 }
