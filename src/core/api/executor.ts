@@ -43,7 +43,7 @@ export class Executor {
             log.debug("SYSTEM", "HookedBeforeRun", `${command.name} - before`);
             res = hook.beforeProc(() => (run = false));
         }
-        if (run) res = await proc.hanlder(args);
+        if (run) res = await proc.hanlder(args[0]);
         if (hook?.afterProc) {
             log.debug("SYSTEM", "HookedAfterRun", `${command.name} - after`);
             res = hook.afterProc();

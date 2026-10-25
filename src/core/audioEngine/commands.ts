@@ -24,16 +24,16 @@ const commands = {
 const createAudioEngineCommandImpl = (engine: AudioEngine) => {
     const procs: Record<string, CommandProc<any, any>> = {
         "engine.play": {
-            hanlder: (
-                id: string,
-                options?: { start?: number; end?: number },
-            ) => {
-                return engine.play(id, options);
+            hanlder: (args: {
+                id: string;
+                options?: { start?: number; end?: number };
+            }) => {
+                return engine.play(args.id, args.options);
             },
         },
         "engine.stop": {
-            hanlder: (source_id: string) => {
-                return engine.stop(source_id);
+            hanlder: (args: { source_id: string }) => {
+                return engine.stop(args.source_id);
             },
         },
         "engine.stop_all_sfx": {
