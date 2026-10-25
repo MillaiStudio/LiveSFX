@@ -17,7 +17,10 @@ export class Executor {
     register<I, O>(command: Command<I, O>, proccess: CommandProc<I, O>): void {
         this.handlers.set(command.name, proccess);
     }
-    async run<I, O>(command: Command<I, O>, input: I): Promise<O> {
+    async run<I, O>(
+        command: Command<I, O>,
+        ...args: I extends void ? [] : [input: I]
+    ): Promise<O> {
         const proc = this.handlers.get(command.name);
         const hook = this.hooks.get(command.name);
         let run = true;
@@ -26,7 +29,7 @@ export class Executor {
             throw new Error(`Handler not registered: ${command.name}`);
         }
         if (hook?.beforeProc) res = hook.beforeProc(() => (run = false));
-        if (run) res = await proc.hanlder(input);
+        if (run) res = await proc.hanlder(args);
         if (hook?.afterProc) res = hook.afterProc();
         return await res;
     }
