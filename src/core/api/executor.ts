@@ -3,7 +3,7 @@ import type { Hook } from "./hooks";
 
 type Handler<I, O> = (input: I) => O | Promise<O>;
 
-interface CommandProc<I, O> {
+export interface CommandProc<I, O> {
     hanlder: Handler<I, O>;
 }
 
