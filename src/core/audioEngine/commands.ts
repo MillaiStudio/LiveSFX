@@ -1,6 +1,5 @@
 import { defineCommand as d } from "../api/commands";
 import type { CommandProc, Executor } from "../api/executor";
-import type { ProjectManager } from "../projectManager/projectmanager";
 import type { AudioEngineError } from "../types/err";
 import type { Result } from "../types/types";
 import type { AudioEngine, PlayResult } from "./audioengine";
@@ -16,11 +15,11 @@ type playType = {
     output: Promise<Result<PlayResult, AudioEngineError>>;
 };
 
-export const commands = [
-    d<playType["input"], playType["output"]>("engine.play"),
-    d<{ source_id: string }, void>("engine.stop"),
-    d<void, void>("engine.stop_all_sfx"),
-];
+const commands = {
+    play: d<playType["input"], playType["output"]>("engine.play"),
+    stop: d<{ source_id: string }, void>("engine.stop"),
+    stop_all_sfx: d<void, void>("engine.stop_all_sfx"),
+};
 
 const createAudioEngineCommandImpl = (engine: AudioEngine) => {
     const procs: Record<string, CommandProc<any, any>> = {
@@ -46,9 +45,13 @@ const createAudioEngineCommandImpl = (engine: AudioEngine) => {
     return procs;
 };
 
-const SetAudioEngineCommands = (executor: Executor, engine: AudioEngine) => {
+export const SetAudioEngineCommands = (
+    executor: Executor,
+    engine: AudioEngine,
+) => {
     const propc = createAudioEngineCommandImpl(engine);
-    for (let command of commands) {
+    for (let command of Object.values(commands)) {
         executor.register(command, propc[command.name]!);
     }
 };
+export { commands as EngineCommands };
