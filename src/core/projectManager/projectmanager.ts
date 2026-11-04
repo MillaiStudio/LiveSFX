@@ -33,6 +33,7 @@ import {
     type SideCarMessage,
 } from "../sidecar/sidecar";
 import { SideCarHostRelay } from "../sidecar/sidecarHost";
+import { createSideCarPlugin } from "../sidecar/plugin";
 import { SideCarVisitorRelay } from "../sidecar/sidecarVisitor";
 import { LogCategory, logger } from "../log/log";
 import { Executor } from "../api/executor";
@@ -76,6 +77,7 @@ export class ProjectManager extends InternalProjectManager {
         );
         this.applyEvent();
         this.set_command();
+        createSideCarPlugin(this.sidecar).install(this.executor);
         this.set_hooks();
         log.info(
             LogCategory.SYSTEM,
@@ -479,9 +481,13 @@ export class ProjectManager extends InternalProjectManager {
     }
 
     get_sfx_library() {
+        if (this.sidecar.mode == "visitor")
+            return this.visitorrelay.get_sfx_library();
         return this.commands.get_sfx_library();
     }
     get_bgm_library() {
+        if (this.sidecar.mode == "visitor")
+            return this.visitorrelay.get_bgm_library();
         return this.commands.get_bgm_library();
     }
     get_duration(id: string) {
@@ -494,16 +500,24 @@ export class ProjectManager extends InternalProjectManager {
         return this.commands.get_soundinfo(id);
     }
     get_group_children(parent: string) {
+        if (this.sidecar.mode == "visitor")
+            return this.visitorrelay.get_group_children(parent);
         return this.commands.get_group_children(parent);
     }
     get_group_names(): string[] {
+        if (this.sidecar.mode == "visitor")
+            return this.visitorrelay.get_group_names();
         return this.commands.get_group_names();
     }
 
     get_bgm_info(id: "deckA" | "deckB") {
+        if (this.sidecar.mode == "visitor")
+            return this.visitorrelay.get_bgm_info(id);
         return this.commands.get_bgm_info(id);
     }
     get_gain(id: string): Result<number, AudioMixerError> {
+        if (this.sidecar.mode == "visitor")
+            return this.visitorrelay.get_gain(id);
         return this.commands.get_gain(id);
     }
     async create_host(): Promise<
