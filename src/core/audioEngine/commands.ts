@@ -11,6 +11,8 @@ type playType = {
         options?: {
             start?: number;
             end?: number;
+            beforestart?: (id: string) => void;
+            onended?: (id: string) => void;
         };
     };
     output: Promise<Result<PlayResult, AudioEngineError>>;
@@ -45,9 +47,10 @@ const commands = {
     rename: d<{ id: string; name: string }, Result<void, string>>(
         "engine.rename",
     ),
-    set_gain: d<{ id: string; gain: number }, Result<number, AudioMixerError>>(
-        "engine.set_gain",
-    ),
+    set_gain: d<
+        { id: string; gain: number; initialised?: boolean },
+        Result<number, AudioMixerError>
+    >("engine.set_gain"),
     ducking: d<void, Result<boolean, AudioMixerError>>("engine.ducking"),
     load_bgm: d<{ id: DeckID; file: BGMFile }, void>("engine.load_bgm"),
     play_bgm: d<{ id: DeckID }, void>("engine.play_bgm"),
@@ -67,7 +70,12 @@ const createAudioEngineCommandImpl = (engine: AudioEngine) => {
         "engine.play": {
             hanlder: (args: {
                 id: string;
-                options?: { start?: number; end?: number };
+                options?: {
+                    start?: number;
+                    end?: number;
+                    beforestart?: (id: string) => void;
+                    onended?: (id: string) => void;
+                };
             }) => {
                 return engine.play(args.id, args.options);
             },
@@ -128,7 +136,11 @@ const createAudioEngineCommandImpl = (engine: AudioEngine) => {
             },
         },
         "engine.set_gain": {
-            hanlder: (args: { id: string; gain: number }) => {
+            hanlder: (args: {
+                id: string;
+                gain: number;
+                initialised?: boolean;
+            }) => {
                 return engine.set_gain(args.id, args.gain);
             },
         },

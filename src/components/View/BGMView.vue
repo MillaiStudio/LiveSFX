@@ -42,8 +42,8 @@ const applyCrossfade = (position: number) => {
     const gainA = Math.cos(theta)
     const gainB = Math.sin(theta)
 
-    ProjectManager.run(EngineCommands.set_gain, { id: "deckA", gain: gainA })
-    ProjectManager.run(EngineCommands.set_gain, { id: "deckB", gain: gainB })
+    ProjectManager.run(EngineCommands.set_gain, { id: "deckA", gain: gainA, initialised: true })
+    ProjectManager.run(EngineCommands.set_gain, { id: "deckB", gain: gainB, initialised: true })
 }
 
 ProjectManager.addEventListener(EngineEvent.CrossFaded, (e: CustomEventInit<number>) => {

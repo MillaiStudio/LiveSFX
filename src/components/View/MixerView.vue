@@ -15,7 +15,7 @@ const { groupNames } = storeToRefs(store);
 
 const set_gain = (e: number, id?: string) => {
     if (!id) return;
-    engine.run(EngineCommands.set_gain, { id: id ?? MIXER_MASTER_CHANNEL_ID, gain: e });
+    engine.run(EngineCommands.set_gain, { id: id ?? MIXER_MASTER_CHANNEL_ID, gain: e, initialised: true });
 }
 const onpointerUp = (e: number, id?: string) => {
     engine.run(EngineCommands.set_gain, { id: id ?? MIXER_MASTER_CHANNEL_ID, gain: e });

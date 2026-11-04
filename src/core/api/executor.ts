@@ -12,11 +12,13 @@ export interface CommandProc<I, O> {
 
 export class Executor {
     private handlers = new Map<string, CommandProc<any, any>>();
-    private hooks = new Map<string, Hook>();
+    private hooks = new Map<string, Hook[]>();
 
     set_hook(target: Command<any, any>, hook: Hook) {
         log.debug("SYSTEM", "set_hook", `hook name : ${target.name}`);
-        this.hooks.set(target.name, hook);
+        const list = this.hooks.get(target.name) ?? [];
+        list.push(hook);
+        this.hooks.set(target.name, list);
     }
     register<I, O>(command: Command<I, O>, proccess: CommandProc<I, O>): void {
         log.debug("SYSTEM", "registar command", `registard : ${command.name}`);
@@ -28,9 +30,7 @@ export class Executor {
     ): Promise<O> {
         log.info("SYSTEM", "run", `run : ${command.name}`);
         const proc = this.handlers.get(command.name);
-        const hook = this.hooks.get(command.name);
-        let run = true;
-        let res;
+        const hooks = this.hooks.get(command.name) ?? [];
         if (!proc || !proc.hanlder) {
             log.error(
                 "SYSTEM",
@@ -39,14 +39,31 @@ export class Executor {
             );
             throw new Error(`Handler not registered: ${command.name}`);
         }
-        if (hook?.beforeProc) {
-            log.debug("SYSTEM", "HookedBeforeRun", `${command.name} - before`);
-            res = hook.beforeProc(() => (run = false));
+        let run = true;
+        const prevent = () => (run = false);
+        for (const hook of hooks) {
+            if (hook.beforeProc) {
+                log.debug(
+                    "SYSTEM",
+                    "HookedBeforeRun",
+                    `${command.name} - before`,
+                );
+                await hook.beforeProc({ input: args[0], prevent });
+            }
         }
-        if (run) res = await proc.hanlder(args[0]);
-        if (hook?.afterProc) {
-            log.debug("SYSTEM", "HookedAfterRun", `${command.name} - after`);
-            res = hook.afterProc();
+        let res;
+        if (run) {
+            res = await proc.hanlder(args[0]);
+            for (const hook of hooks) {
+                if (hook.afterProc) {
+                    log.debug(
+                        "SYSTEM",
+                        "HookedAfterRun",
+                        `${command.name} - after`,
+                    );
+                    await hook.afterProc(res, args[0]);
+                }
+            }
         }
         log.info("SYSTEM", "Ran", `Ran command-${command.name}`, { data: res });
         return await res;

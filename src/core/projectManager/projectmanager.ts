@@ -36,7 +36,10 @@ import { SideCarHostRelay } from "../sidecar/sidecarHost";
 import { SideCarVisitorRelay } from "../sidecar/sidecarVisitor";
 import { LogCategory, logger } from "../log/log";
 import { Executor } from "../api/executor";
-import { SetAudioEngineCommands } from "../audioEngine/commands";
+import {
+    EngineCommands,
+    SetAudioEngineCommands,
+} from "../audioEngine/commands";
 import type { Command } from "../api/commands";
 
 const log = logger.module("ProjectManager");
@@ -73,6 +76,7 @@ export class ProjectManager extends InternalProjectManager {
         );
         this.applyEvent();
         this.set_command();
+        this.set_hooks();
         log.info(
             LogCategory.SYSTEM,
             "End",
@@ -169,6 +173,82 @@ export class ProjectManager extends InternalProjectManager {
     }
     private set_command() {
         SetAudioEngineCommands(this.executor, this.engine);
+    }
+    private set_hooks() {
+        // コマンド実行に伴うストアへの反映 (旧UiCommandsManagerの副作用の移転先)
+        const dispatch = (event: EngineEvent, detail?: unknown) => {
+            this.dispatchEvent(
+                detail !== undefined
+                    ? new CustomEvent(event, { detail })
+                    : new Event(event),
+            );
+        };
+        // play: 再生開始/終了のタイミングはエンジン側のコールバックでしか取れないため、
+        // beforeProcで入力のoptionsへ注入する (旧UiCommands.playと同じ形)
+        this.executor.set_hook(EngineCommands.play, {
+            beforeProc: ({ input }) => {
+                input.options = {
+                    ...input.options,
+                    beforestart: (id: string) =>
+                        dispatch(EngineEvent.PlaySFX, { id }),
+                    onended: (id: string) =>
+                        dispatch(EngineEvent.StopSFX, { id }),
+                };
+            },
+        });
+        this.executor.set_hook(EngineCommands.stop, {
+            afterProc: (result) => {
+                if (result?.ok) dispatch(EngineEvent.StopSFX, { id: result.value });
+            },
+        });
+        // ライブラリを変更するコマンド (Result型): 成功したときだけ変更扱いにする
+        const markChangedOnOk = {
+            afterProc: (result: Result<unknown, unknown>) => {
+                if (result?.ok) this.stateManager.markAsChanged();
+            },
+        };
+        for (const command of [
+            EngineCommands.create_group,
+            EngineCommands.delete_group,
+            EngineCommands.rename_group,
+            EngineCommands.move_sound_to_group,
+            EngineCommands.move_sound,
+            EngineCommands.rename,
+        ]) {
+            this.executor.set_hook(command, markChangedOnOk);
+        }
+        // ライブラリを変更するコマンド (void型): 実行できたら変更扱いにする
+        const markChanged = {
+            afterProc: () => {
+                this.stateManager.markAsChanged();
+            },
+        };
+        for (const command of [
+            EngineCommands.trim,
+            EngineCommands.set_sfx_play_mode,
+            EngineCommands.discard_sound,
+        ]) {
+            this.executor.set_hook(command, markChanged);
+        }
+        this.executor.set_hook(EngineCommands.set_gain, {
+            afterProc: (result, input) => {
+                if (input?.id === "deckA") dispatch(EngineEvent.CrossFaded);
+                if (result?.ok) {
+                    dispatch(EngineEvent.GainChanged);
+                    if (!input?.initialised) this.stateManager.markAsChanged();
+                }
+            },
+        });
+        this.executor.set_hook(EngineCommands.ducking, {
+            afterProc: (result) => {
+                if (result?.ok)
+                    dispatch(
+                        result.value
+                            ? EngineEvent.DuckingActivated
+                            : EngineEvent.DuckingDeactivated,
+                    );
+            },
+        });
     }
     private checkStorage(): boolean {
         if (!this.storageManager.is_initialised()) {
