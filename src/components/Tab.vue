@@ -2,6 +2,7 @@
 export interface TabItem {
     id: string;
     label: string;
+    disabled?: boolean;
 }
 
 const selected = defineModel<string>({ required: true });
@@ -10,16 +11,17 @@ const props = defineProps<{
     tabs: TabItem[];
 }>();
 
-const select = (id: string) => {
-    selected.value = id;
+const select = (tab: TabItem) => {
+    if (tab.disabled) return;
+    selected.value = tab.id;
 };
 </script>
 
 <template>
     <div class="container">
         <div class="tabs" :style="{ '--tab-count': tabs.length }">
-            <button v-for="tab in tabs" :key="tab.id" class="tab" :class="{ active: selected === tab.id }"
-                @click="select(tab.id)">
+            <button v-for="tab in tabs" :key="tab.id" class="tab" :class="{ active: selected === tab.id, disabled: tab.disabled }"
+                :disabled="tab.disabled" @click="select(tab)">
                 {{ tab.label }}
             </button>
             <div class="glider" :style="{
@@ -64,6 +66,11 @@ const select = (id: string) => {
 
 .tab.active {
     color: var(--label-normal);
+}
+
+.tab.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
 }
 
 .glider {

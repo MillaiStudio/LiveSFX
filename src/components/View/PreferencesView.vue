@@ -21,7 +21,7 @@ const tabItem = computed<TabItem[]>(() => [
     { id: 'general', label: '一般' },
     { id: 'sound', label: 'サウンド' },
     { id: 'mixer', label: 'ミキサー' },
-    { id: 'sidecar', label: 'SideCar' },
+    { id: 'sidecar', label: 'SideCar', disabled: true },
 ]);
 
 const contentRef = ref<HTMLElement>();
