@@ -566,4 +566,10 @@ export class ProjectManager extends InternalProjectManager {
     ): Promise<O> {
         return this.executor.run(command, ...args);
     }
+    runSync<I, O>(
+        command: Command<I, O>,
+        ...args: I extends void ? [] : [input: I]
+    ): O {
+        return this.executor.runSync(command, ...args);
+    }
 }
