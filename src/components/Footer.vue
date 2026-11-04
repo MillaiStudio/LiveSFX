@@ -21,7 +21,7 @@ const toggle_ui_mode = () => {
 }
 
 const requestDucking = () => {
-    ProjectManager.ducking();
+    ProjectManager.run(EngineCommands.ducking);
 }
 </script>
 <template>

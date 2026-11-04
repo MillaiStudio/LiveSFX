@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ProjectManager } from '@/core';
+import { EngineCommands } from '@/core/audioEngine/commands.ts';
 import { useEngineState, type BGMPlayerInfo } from '@/core/store/enginestore';
 import { Eject, Pause, Play, Repeat, X } from '@lucide/vue';
 import { storeToRefs } from 'pinia';
@@ -49,7 +50,7 @@ const handleDragEnd = (_e: PointerEvent) => {
 
     if (dragProgress.value !== null && props.deck_info.duration) {
         const time = (dragProgress.value / 100) * props.deck_info.duration;
-        ProjectManager.seek_bgm(props.deckId, time);
+        ProjectManager.run(EngineCommands.seek_bgm, { id: props.deckId, time });
     }
     dragProgress.value = null;
 }
@@ -65,14 +66,14 @@ const handleDragStart = (e: PointerEvent) => {
 
 const toggle_play = () => {
     if (props.deck_info.playing) {
-        ProjectManager.pause_bgm(props.deckId);
+        ProjectManager.run(EngineCommands.pause_bgm, { id: props.deckId });
     } else {
-        ProjectManager.play_bgm(props.deckId);
+        ProjectManager.run(EngineCommands.play_bgm, { id: props.deckId });
     }
 }
 
 const eject = () => {
-    ProjectManager.eject_bgm(props.deckId);
+    ProjectManager.run(EngineCommands.unload_bgm, { id: props.deckId });
 }
 const deckIndex = computed(() => (props.deckId === "deckA" ? 0 : 1));
 const deckData = computed(() => deck.value[deckIndex.value]);
@@ -97,7 +98,7 @@ const deckData = computed(() => deck.value[deckIndex.value]);
                         ref="seekbar"></progress>
                     <small>{{ format_time(props.deck_info.current_time) }} / {{ format_time(props.deck_info.duration)
                     }}</small>
-                    <button  :class="{unloop:!props.deck_info.loop}" @click="ProjectManager.loop_bgm(props.deckId)">
+                    <button  :class="{unloop:!props.deck_info.loop}" @click="ProjectManager.run(EngineCommands.loop_bgm, { id: props.deckId })">
                         <Repeat :size="16" />
                     </button>
                 </div>

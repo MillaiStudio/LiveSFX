@@ -4,19 +4,20 @@ import Settinglist from '../settinglist.vue';
 import SettingsRow from '../settingsRow.vue';
 import SettingsSection from '../settingsSection.vue';
 import { ProjectManager } from '@/core/index.ts';
+import { EngineCommands } from '@/core/audioEngine/commands.ts';
 
 
 const props = defineProps<{ id: string, filaname: string }>();
 const emit = defineEmits(['saved'])
 const filename = ref(props.filaname)
-const save = () => {
-    ProjectManager.rename(props.id, filename.value)
+const save = async () => {
+    await ProjectManager.run(EngineCommands.rename, { id: props.id, name: filename.value })
     emit('saved')
 }
 const deleteBGM = () => {
     const decision = confirm("プロジェクトからファイルを削除しますか？");
     if (decision) {
-        ProjectManager.discard_sound(props.id);
+        ProjectManager.run(EngineCommands.discard_sound, { id: props.id });
         emit('saved')
     }
 }

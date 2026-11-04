@@ -236,16 +236,16 @@ const finishDrag = async (committed: boolean) => {
 
     if (wasActive && finalIndex !== -1) {
         if (newGroup !== null) {
-            const groupResult = ProjectManager.move_sound_to_group(
+            const groupResult = await ProjectManager.run(EngineCommands.move_sound_to_group, {
                 id, newGroup,
-            );
+            });
             if (!groupResult.ok) {
                 order.value = store.sfx_library.map(s => s.id);
                 dragOverrideGroup.value = null;
                 return;
             }
         }
-        const result = await ProjectManager.move_sound(id, finalIndex);
+        const result = await ProjectManager.run(EngineCommands.move_sound, { id, toIndex: finalIndex });
         if (!result.ok) {
             order.value = store.sfx_library.map(s => s.id);
         }
@@ -363,7 +363,7 @@ const openCreateGroup = () => {
     showCreateGroup.value = true;
 }
 
-const submitCreateGroup = () => {
+const submitCreateGroup = async () => {
     const name = newGroupName.value.trim();
     if (!name) {
         createGroupError.value = 'グループ名を入力してください';
@@ -373,7 +373,7 @@ const submitCreateGroup = () => {
         createGroupError.value = 'そのグループ名は既に使われています';
         return;
     }
-    const result = ProjectManager.create_group(name);
+    const result = await ProjectManager.run(EngineCommands.create_group, { name });
     if (!result.ok) {
         createGroupError.value = result.value;
         return;
@@ -386,7 +386,7 @@ const groupLabel = (name: string) => name === UNGROUPED ? '未分類' : name;
 const deleteGroup = (name: string) => {
     if (name === UNGROUPED) return;
     if (!confirm(`グループ「${name}」を削除しますか?中の音は未分類に移動します。`)) return;
-    ProjectManager.delete_group(name);
+    ProjectManager.run(EngineCommands.delete_group, { name });
 }
 
 const renameGroup = (name: string) => {
@@ -399,7 +399,7 @@ const renameGroup = (name: string) => {
         alert('そのグループ名は既に使われています');
         return;
     }
-    ProjectManager.rename_group(name, trimmed);
+    ProjectManager.run(EngineCommands.rename_group, { oldName: name, newName: trimmed });
 }
 </script>
 

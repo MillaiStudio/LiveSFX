@@ -6,6 +6,7 @@ import SettingsRow from '../settingsRow.vue';
 import SettingsSection from '../settingsSection.vue';
 import { useEngineState } from '@/core/store/enginestore.ts';
 import { ProjectManager } from '@/core/index.ts';
+import { EngineCommands } from '@/core/audioEngine/commands.ts';
 import Modal from '../Modal.vue';
 import Spinner from '../Spinner.vue';
 import { EngineEvent } from '@/core/types/types.ts';
@@ -41,8 +42,8 @@ const applyCrossfade = (position: number) => {
     const gainA = Math.cos(theta)
     const gainB = Math.sin(theta)
 
-    ProjectManager.set_gain("deckA", gainA, true)
-    ProjectManager.set_gain("deckB", gainB, true)
+    ProjectManager.run(EngineCommands.set_gain, { id: "deckA", gain: gainA })
+    ProjectManager.run(EngineCommands.set_gain, { id: "deckB", gain: gainB })
 }
 
 ProjectManager.addEventListener(EngineEvent.CrossFaded, (e: CustomEventInit<number>) => {
@@ -76,7 +77,7 @@ onMounted(() => {
 })
 
 const load_to_deck = (deckId: "deckA" | "deckB", bgmId: string) => {
-    ProjectManager.load_bgm_to_deck(deckId, bgmId);
+    ProjectManager.run(EngineCommands.load_bgm_to_deck, { id: deckId, bgmId });
 }
 
 const showed_editor = ref(false);

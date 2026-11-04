@@ -7,6 +7,7 @@ import { useEngineState } from '@/core/store/enginestore.ts';
 import { storeToRefs } from 'pinia';
 import { UNGROUPED } from '@/core/constants.ts';
 import { generateUUID } from '@/core/util/util.ts';
+import { EngineCommands } from '@/core/audioEngine/commands.ts';
 
 const engine = ProjectManager;
 const store = useEngineState();
@@ -14,10 +15,10 @@ const { groupNames } = storeToRefs(store);
 
 const set_gain = (e: number, id?: string) => {
     if (!id) return;
-    engine.set_gain(id ?? MIXER_MASTER_CHANNEL_ID, e, true);
+    engine.run(EngineCommands.set_gain, { id: id ?? MIXER_MASTER_CHANNEL_ID, gain: e });
 }
 const onpointerUp = (e: number, id?: string) => {
-    engine.set_gain(id ?? MIXER_MASTER_CHANNEL_ID, e);
+    engine.run(EngineCommands.set_gain, { id: id ?? MIXER_MASTER_CHANNEL_ID, gain: e });
 }
 const get_gain = (id?: string) => {
     if (id === undefined) return 1

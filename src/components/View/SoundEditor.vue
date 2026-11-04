@@ -198,9 +198,9 @@ onBeforeUnmount(() => {
 const emit = defineEmits(['saved']);
 
 const valid = ref(true)
-const save = () => {
-    ProjectManager.trim(props.soundId, trimStart.value, trimEnd.value);
-    ProjectManager.set_sfx_playmode(props.soundId, playbackOption.value);
+const save = async () => {
+    await ProjectManager.run(EngineCommands.trim, { id: props.soundId, start: trimStart.value, end: trimEnd.value });
+    await ProjectManager.run(EngineCommands.set_sfx_play_mode, { id: props.soundId, mode: playbackOption.value });
 
     let targetGroup: string | undefined = selectedGroup.value || undefined;
     if (selectedGroup.value === NEW_GROUP) {
@@ -213,7 +213,7 @@ const save = () => {
             groupError.value = 'そのグループ名は既に使われています';
             return;
         }
-        const created = ProjectManager.create_group(name);
+        const created = await ProjectManager.run(EngineCommands.create_group, { name });
         if (!created.ok) {
             groupError.value = created.value;
             return;
@@ -223,13 +223,13 @@ const save = () => {
 
     const currentMeta = ProjectManager.get_soundinfo(props.soundId);
     if ((currentMeta?.group ?? undefined) !== targetGroup) {
-        const result = ProjectManager.move_sound_to_group(props.soundId, targetGroup);
+        const result = await ProjectManager.run(EngineCommands.move_sound_to_group, { id: props.soundId, newGroup: targetGroup });
         if (!result.ok) {
             groupError.value = result.value;
             return;
         }
     }
-    ProjectManager.rename(props.soundId, filename.value);
+    await ProjectManager.run(EngineCommands.rename, { id: props.soundId, name: filename.value });
 
     emit('saved');
 }
@@ -237,7 +237,7 @@ const save = () => {
 const deleteSFX = () => {
     const decision = confirm("プロジェクトからファイルを削除しますか？");
     if (decision) {
-        ProjectManager.discard_sound(props.soundId);
+        ProjectManager.run(EngineCommands.discard_sound, { id: props.soundId });
         emit('saved')
     }
 }

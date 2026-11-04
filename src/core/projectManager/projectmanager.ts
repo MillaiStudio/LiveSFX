@@ -17,7 +17,6 @@ import { EngineError, EngineException } from "../types/error_types";
 import { PROJECT_FILE_EX } from "../constants";
 import {
     SoundFileType,
-    type SFXPlayMode,
     type SFXFile,
     type BGMFile,
     type SoundMeta,
@@ -30,7 +29,6 @@ import { applyGuard } from "../util/util";
 import { UiCommandsManager } from "../commands/uiCommands";
 import {
     SideCar,
-    SideCarCommand,
     SideCarEvent,
     type SideCarMessage,
 } from "../sidecar/sidecar";
@@ -185,6 +183,7 @@ export class ProjectManager extends InternalProjectManager {
         await this.engine.dispose();
         this.engine = new AudioEngine();
         this.commands.replace_engine(this.engine);
+        this.set_command();
         await this.init(undefined, true);
         this.dispatchEvent(new Event(EngineEvent.ChangedLibrary));
     }
@@ -202,6 +201,7 @@ export class ProjectManager extends InternalProjectManager {
         const { filename, sfx, bgm, load_failed } = result.value;
         await this.init(filename);
         this.commands.replace_engine(this.engine);
+        this.set_command();
 
         if (load_failed) this.warn(EngineError.PartialSoundLoadFailed);
 
@@ -403,13 +403,9 @@ export class ProjectManager extends InternalProjectManager {
     }
 
     get_sfx_library() {
-        if (this.sidecar.mode == "visitor")
-            return this.visitorrelay.get_sfx_library();
         return this.commands.get_sfx_library();
     }
     get_bgm_library() {
-        if (this.sidecar.mode == "visitor")
-            return this.visitorrelay.get_bgm_library();
         return this.commands.get_bgm_library();
     }
     get_duration(id: string) {
@@ -422,139 +418,17 @@ export class ProjectManager extends InternalProjectManager {
         return this.commands.get_soundinfo(id);
     }
     get_group_children(parent: string) {
-        if (this.sidecar.mode == "visitor")
-            return this.visitorrelay.get_group_children(parent);
         return this.commands.get_group_children(parent);
     }
     get_group_names(): string[] {
-        if (this.sidecar.mode == "visitor")
-            return this.visitorrelay.get_group_names();
         return this.commands.get_group_names();
     }
 
-    trim(id: string, start: number, end: number) {
-        this.commands.trim(id, start, end);
-    }
-
-    set_sfx_playmode(id: string, mode: SFXPlayMode) {
-        this.commands.set_sfx_playmode(id, mode);
-    }
-
-    discard_sound(id: string) {
-        this.commands.discard_sound(id);
-    }
-
-    create_group(name: string): Result<string, string> {
-        return this.commands.create_group(name);
-    }
-
-    delete_group(name: string): Result<void, string> {
-        return this.commands.delete_group(name);
-    }
-
-    rename_group(oldName: string, newName: string): Result<void, string> {
-        return this.commands.rename_group(oldName, newName);
-    }
-
-    move_sound_to_group(id: string, newGroup?: string): Result<void, string> {
-        return this.commands.move_sound_to_group(id, newGroup);
-    }
-
-    move_sound(id: string, toIndex: number): Result<void, string> {
-        return this.commands.move_sound(id, toIndex);
-    }
-
-    rename(id: string, name: string) {
-        return this.commands.rename(id, name);
-    }
-
-    set_gain(
-        id: string,
-        gain: number,
-        initialising?: boolean,
-    ): Result<number, AudioMixerError> {
-        if (this.sidecar.mode == "visitor") {
-            this.sidecar.send_command({
-                cmd: SideCarCommand.SetGain,
-                id,
-                gain,
-                initialising,
-            });
-            return Ok(gain);
-        }
-        return this.commands.set_gain(id, gain, initialising);
-    }
-
-    get_gain(id: string): Result<number, AudioMixerError> {
-        if (this.sidecar.mode == "visitor")
-            return this.visitorrelay.get_gain(id);
-        return this.commands.get_gain(id);
-    }
-
-    ducking() {
-        if (this.sidecar.mode == "visitor")
-            return this.sidecar.send_command({ cmd: SideCarCommand.Ducking });
-        return this.commands.ducking();
-    }
-
     get_bgm_info(id: "deckA" | "deckB") {
-        if (this.sidecar.mode == "visitor")
-            return this.visitorrelay.get_bgm_info(id);
         return this.commands.get_bgm_info(id);
     }
-    load_bgm(id: "deckA" | "deckB", file: BGMFile) {
-        this.commands.load_bgm(id, file);
-    }
-    play_bgm(id: "deckA" | "deckB") {
-        if (this.sidecar.mode == "visitor")
-            return this.sidecar.send_command({
-                cmd: SideCarCommand.PlayBgm,
-                deck: id,
-            });
-        return this.commands.play_bgm(id);
-    }
-    pause_bgm(id: "deckA" | "deckB") {
-        if (this.sidecar.mode == "visitor")
-            return this.sidecar.send_command({
-                cmd: SideCarCommand.PauseBgm,
-                deck: id,
-            });
-        this.commands.pause_bgm(id);
-    }
-    stop_bgm(id: "deckA" | "deckB") {
-        if (this.sidecar.mode == "visitor")
-            return this.sidecar.send_command({
-                cmd: SideCarCommand.StopBgm,
-                deck: id,
-            });
-        this.commands.stop_bgm(id);
-    }
-    seek_bgm(id: "deckA" | "deckB", time: number) {
-        if (this.sidecar.mode == "visitor")
-            return this.sidecar.send_command({
-                cmd: SideCarCommand.SeekBgm,
-                deck: id,
-                time,
-            });
-        this.commands.seek_bgm(id, time);
-    }
-    eject_bgm(id: "deckA" | "deckB") {
-        if (this.sidecar.mode == "visitor")
-            return this.sidecar.send_command({
-                cmd: SideCarCommand.UnloadBGM,
-                deck: id,
-            });
-        this.commands.unload_bgm(id);
-    }
-
-    load_bgm_to_deck(id: "deckA" | "deckB", bgmId: string) {
-        if (this.sidecar.mode == "visitor")
-            return this.sidecar.send_command({
-                cmd: SideCarCommand.LoadBgmToDeck,
-                deck: id,
-                bgmId,
-            });
-        return this.commands.load_bgm_to_deck(id, bgmId);
+    get_gain(id: string): Result<number, AudioMixerError> {
+        return this.commands.get_gain(id);
     }
     async create_host(): Promise<
         Option<{
@@ -599,14 +473,6 @@ export class ProjectManager extends InternalProjectManager {
         }
         this.dispatchEvent(new Event(EngineEvent.SideCarEnded));
         return;
-    }
-    loop_bgm(id: "deckA" | "deckB") {
-        if (this.sidecar.mode == "visitor")
-            this.sidecar.send_command({
-                cmd: SideCarCommand.ToggleLoop,
-                id: id,
-            });
-        return this.commands.loop_bgm(id);
     }
     get_connections() {
         return Array.from(this.sidecar.connections, ([id, connection]) => ({
