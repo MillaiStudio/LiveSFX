@@ -1,6 +1,5 @@
 import { describe, expect, test, vi } from "vitest";
 
-// Executorのログ出力はブラウザ前提 (IndexedDB等) なので、テストでは無効化する
 vi.mock("../log/log", () => ({
     logger: {
         module: () => ({
@@ -18,11 +17,11 @@ import { defineCommand } from "../api/commands";
 
 const add = defineCommand<{ v: number }, number>("test.add");
 
-function executorWith(handler: (i: { v: number }) => unknown) {
+const executorWith = (handler: (i: { v: number }) => unknown) => {
     const ex = new Executor();
     ex.register(add, { hanlder: handler as never });
     return ex;
-}
+};
 
 describe("Executor.run (async)", () => {
     test("returns the handler result; afterProc sees it but cannot overwrite it", async () => {

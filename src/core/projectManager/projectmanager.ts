@@ -175,7 +175,6 @@ export class ProjectManager extends InternalProjectManager {
         SetAudioEngineCommands(this.executor, this.engine);
     }
     private set_hooks() {
-        // コマンド実行に伴うストアへの反映 (旧UiCommandsManagerの副作用の移転先)
         const dispatch = (event: EngineEvent, detail?: unknown) => {
             this.dispatchEvent(
                 detail !== undefined
@@ -183,8 +182,7 @@ export class ProjectManager extends InternalProjectManager {
                     : new Event(event),
             );
         };
-        // play: 再生開始/終了のタイミングはエンジン側のコールバックでしか取れないため、
-        // beforeProcで入力のoptionsへ注入する (旧UiCommands.playと同じ形)
+        // 再生開始/終了はエンジン側コールバックでしか拾えないため、beforeProcでoptionsへ注入する
         this.executor.set_hook(EngineCommands.play, {
             beforeProc: ({ input }) => {
                 input.options = {
@@ -201,7 +199,6 @@ export class ProjectManager extends InternalProjectManager {
                 if (result?.ok) dispatch(EngineEvent.StopSFX, { id: result.value });
             },
         });
-        // ライブラリを変更するコマンド (Result型): 成功したときだけ変更扱いにする
         const markChangedOnOk = {
             afterProc: (result: Result<unknown, unknown>) => {
                 if (result?.ok) this.stateManager.markAsChanged();
@@ -217,7 +214,6 @@ export class ProjectManager extends InternalProjectManager {
         ]) {
             this.executor.set_hook(command, markChangedOnOk);
         }
-        // ライブラリを変更するコマンド (void型): 実行できたら変更扱いにする
         const markChanged = {
             afterProc: () => {
                 this.stateManager.markAsChanged();

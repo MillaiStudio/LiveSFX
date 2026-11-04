@@ -10,12 +10,12 @@ export interface CommandProc<I, O> {
     hanlder: Handler<I, O>;
 }
 
-function isPromiseLike(value: unknown): value is PromiseLike<unknown> {
+const isPromiseLike = (value: unknown): value is PromiseLike<unknown> => {
     return (
         !!value &&
         typeof (value as { then?: unknown }).then === "function"
     );
-}
+};
 
 export class Executor {
     private handlers = new Map<string, CommandProc<any, any>>();
@@ -75,8 +75,6 @@ export class Executor {
         log.info("SYSTEM", "Ran", `Ran command-${command.name}`, { data: res });
         return await res;
     }
-    // 同期コマンド用の実行経路。awaitを挟まず、結果をそのまま返す。
-    // ハンドラやhookがPromiseを返した場合は同期では扱えないためエラーにする。
     runSync<I, O>(
         command: Command<I, O>,
         ...args: I extends void ? [] : [input: I]
