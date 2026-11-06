@@ -27,11 +27,7 @@ import { openAudioFilePicker } from "../files/fileUtil";
 import { InternalProjectManager } from "./internalProjectManager";
 import { applyGuard } from "../util/util";
 import { UiCommandsManager } from "../commands/uiCommands";
-import {
-    SideCar,
-    SideCarEvent,
-    type SideCarMessage,
-} from "../sidecar/sidecar";
+import { SideCar, SideCarEvent, type SideCarMessage } from "../sidecar/sidecar";
 import { SideCarHostRelay } from "../sidecar/sidecarHost";
 import { createSideCarPlugin } from "../sidecar/plugin";
 import { SideCarVisitorRelay } from "../sidecar/sidecarVisitor";
@@ -62,7 +58,7 @@ export class ProjectManager extends InternalProjectManager {
             (e) => this.error(e),
         );
         this.sidecar = new SideCar();
-        this.hostrelay = new SideCarHostRelay(this.commands, this.sidecar);
+        this.hostrelay = new SideCarHostRelay(this.executor, this.sidecar);
 
         this.visitorrelay = new SideCarVisitorRelay(
             this.sidecar,
@@ -198,7 +194,8 @@ export class ProjectManager extends InternalProjectManager {
         });
         this.executor.set_hook(EngineCommands.stop, {
             afterProc: (result) => {
-                if (result?.ok) dispatch(EngineEvent.StopSFX, { id: result.value });
+                if (result?.ok)
+                    dispatch(EngineEvent.StopSFX, { id: result.value });
             },
         });
         const markChangedOnOk = {

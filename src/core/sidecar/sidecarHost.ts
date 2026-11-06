@@ -1,5 +1,7 @@
+import { ProjectManager } from "..";
+import type { Executor } from "../api/executor";
 import type { AudioEngine } from "../audioEngine/audioengine";
-import type { UiCommandsManager } from "../commands/uiCommands";
+import { EngineCommands } from "../audioEngine/commands";
 import { useEngineState } from "../store/enginestore";
 import type { EngineEvent } from "../types/types";
 import {
@@ -10,45 +12,63 @@ import {
 } from "./sidecar";
 
 export class SideCarHostRelay {
-    private commands: UiCommandsManager;
+    private executor: Executor;
     private sidecar: SideCar;
-    constructor(commands: UiCommandsManager, sidecar: SideCar) {
-        this.commands = commands;
+    constructor(executor: Executor, sidecar: SideCar) {
+        this.executor = executor;
         this.sidecar = sidecar;
     }
     excec(payload: SideCarCommandPayload) {
         switch (payload.cmd) {
             case SideCarCommand.Play:
-                return this.commands.play(payload.id, payload.options);
+                return this.executor.run(EngineCommands.play, {
+                    id: payload.id,
+                    options: payload.options,
+                });
             case SideCarCommand.Stop:
-                return this.commands.stop(payload.source_id);
+                return this.executor.run(EngineCommands.stop, {
+                    source_id: payload.source_id,
+                });
             case SideCarCommand.StopAllSfx:
-                return this.commands.stop_all_sfx();
+                return this.executor.run(EngineCommands.stop_all_sfx);
             case SideCarCommand.Ducking:
-                return this.commands.ducking();
+                return this.executor.run(EngineCommands.ducking);
             case SideCarCommand.SetGain:
-                return this.commands.set_gain(
-                    payload.id,
-                    payload.gain,
-                    payload.initialising,
-                );
+                return this.executor.run(EngineCommands.set_gain, {
+                    id: payload.id,
+                    gain: payload.gain,
+                    initialised: payload.initialising,
+                });
             case SideCarCommand.PlayBgm:
-                return this.commands.play_bgm(payload.deck);
+                return this.executor.run(EngineCommands.play_bgm, {
+                    id: payload.deck,
+                });
             case SideCarCommand.PauseBgm:
-                return this.commands.pause_bgm(payload.deck);
+                return this.executor.run(EngineCommands.pause_bgm, {
+                    id: payload.deck,
+                });
             case SideCarCommand.StopBgm:
-                return this.commands.stop_bgm(payload.deck);
+                return this.executor.run(EngineCommands.stop_bgm, {
+                    id: payload.deck,
+                });
             case SideCarCommand.SeekBgm:
-                return this.commands.seek_bgm(payload.deck, payload.time);
+                return this.executor.run(EngineCommands.seek_bgm, {
+                    id: payload.deck,
+                    time: payload.time,
+                });
             case SideCarCommand.LoadBgmToDeck:
-                return this.commands.load_bgm_to_deck(
-                    payload.deck,
-                    payload.bgmId,
-                );
+                return this.executor.run(EngineCommands.load_bgm_to_deck, {
+                    id: payload.deck,
+                    bgmId: payload.bgmId,
+                });
             case SideCarCommand.UnloadBGM:
-                return this.commands.unload_bgm(payload.deck);
+                return this.executor.run(EngineCommands.unload_bgm, {
+                    id: payload.deck,
+                });
             case SideCarCommand.ToggleLoop:
-                return this.commands.loop_bgm(payload.id);
+                return this.executor.run(EngineCommands.loop_bgm, {
+                    id: payload.id,
+                });
         }
     }
     send_event(event: EngineEvent, detail?: unknown) {
@@ -60,10 +80,10 @@ export class SideCarHostRelay {
     }
     buildLibraryState() {
         return {
-            sfx_library: this.commands.get_sfx_library(),
-            bgm_library: this.commands.get_bgm_library(),
-            groupNames: this.commands.get_group_names(),
-            channels: this.commands.get_all_channels(),
+            sfx_library: this.executor.runSync(EngineCommands.get_sfx_library),
+            bgm_library: this.executor.runSync(EngineCommands.get_bgm_library),
+            groupNames: this.executor.runSync(EngineCommands.get_group_names),
+            channels: this.executor.runSync(EngineCommands.get_all_channels),
         };
     }
     sendSnapShot() {

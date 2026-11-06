@@ -3,7 +3,8 @@ import type { CommandProc, Executor } from "../api/executor";
 import type { AudioEngineError, AudioMixerError } from "../types/err";
 import type { Result } from "../types/types";
 import type { AudioEngine, DeckID, PlayResult } from "./audioengine";
-import type { BGMFile, SFXPlayMode } from "./sounds";
+import type { MixerChannelSnapshot } from "./mixer";
+import type { BGMFile, SFXPlayMode, SoundMeta } from "./sounds";
 
 type playType = {
     input: {
@@ -33,10 +34,9 @@ const commands = {
     delete_group: d<{ name: string }, Result<void, string>>(
         "engine.delete_group",
     ),
-    rename_group: d<
-        { oldName: string; newName: string },
-        Result<void, string>
-    >("engine.rename_group"),
+    rename_group: d<{ oldName: string; newName: string }, Result<void, string>>(
+        "engine.rename_group",
+    ),
     move_sound_to_group: d<
         { id: string; newGroup?: string },
         Result<void, string>
@@ -63,6 +63,16 @@ const commands = {
         Result<void, AudioEngineError>
     >("engine.load_bgm_to_deck"),
     loop_bgm: d<{ id: DeckID }, void>("engine.loop_bgm"),
+    get_sfx_library: d<void, Record<string, SoundMeta>>(
+        "engine.get_sfx_library",
+    ),
+    get_bgm_library: d<void, Record<string, SoundMeta>>(
+        "engine.get_bgm_library",
+    ),
+    get_group_names: d<void, string[]>("engine.get_group_names"),
+    get_all_channels: d<void, MixerChannelSnapshot[]>(
+        "engine.get_all_channels",
+    ),
 };
 
 const createAudioEngineCommandImpl = (engine: AudioEngine) => {
@@ -188,6 +198,18 @@ const createAudioEngineCommandImpl = (engine: AudioEngine) => {
             hanlder: (args: { id: DeckID }) => {
                 return engine.loop_bgm(args.id);
             },
+        },
+        "engine.get_sfx_library": {
+            hanlder: () => engine.get_sfx_library(),
+        },
+        "engine.get_bgm_library": {
+            hanlder: () => engine.get_bgm_library,
+        },
+        "engine.get_group_names": {
+            hanlder: () => engine.get_group_names(),
+        },
+        "engine.get_all_channels": {
+            hanlder: () => engine.get_all_channels(),
         },
     };
     return procs;
