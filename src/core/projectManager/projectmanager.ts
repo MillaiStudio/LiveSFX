@@ -569,16 +569,10 @@ export class ProjectManager extends InternalProjectManager {
             device_info: connection.device_info,
         }));
     }
-    async run<I, O>(
-        command: Command<I, O>,
-        ...args: I extends void ? [] : [input: I]
-    ): Promise<O> {
-        return this.executor.run(command, ...args);
-    }
-    runSync<I, O>(
+    run<I, O>(
         command: Command<I, O>,
         ...args: I extends void ? [] : [input: I]
     ): O {
-        return this.executor.runSync(command, ...args);
+        return this.executor.run(command, ...args);
     }
 }

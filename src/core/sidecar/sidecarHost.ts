@@ -79,10 +79,10 @@ export class SideCarHostRelay {
     }
     buildLibraryState() {
         return {
-            sfx_library: this.executor.runSync(EngineCommands.get_sfx_library),
-            bgm_library: this.executor.runSync(EngineCommands.get_bgm_library),
-            groupNames: this.executor.runSync(EngineCommands.get_group_names),
-            channels: this.executor.runSync(EngineCommands.get_all_channels),
+            sfx_library: this.executor.run(EngineCommands.get_sfx_library),
+            bgm_library: this.executor.run(EngineCommands.get_bgm_library),
+            groupNames: this.executor.run(EngineCommands.get_group_names),
+            channels: this.executor.run(EngineCommands.get_all_channels),
         };
     }
     sendSnapShot() {
