@@ -247,6 +247,24 @@ export class ProjectManager extends InternalProjectManager {
                     );
             },
         });
+        const notifyError = {
+            afterProc: (result: Result<unknown, unknown>) => {
+                if (result && !result.ok) this.error(result.value as string);
+            },
+        };
+        for (const command of [
+            EngineCommands.create_group,
+            EngineCommands.delete_group,
+            EngineCommands.rename_group,
+            EngineCommands.move_sound_to_group,
+            EngineCommands.move_sound,
+            EngineCommands.rename,
+            EngineCommands.set_gain,
+            EngineCommands.ducking,
+            EngineCommands.load_bgm_to_deck,
+        ]) {
+            this.executor.set_hook(command, notifyError);
+        }
     }
     private checkStorage(): boolean {
         if (!this.storageManager.is_initialised()) {
