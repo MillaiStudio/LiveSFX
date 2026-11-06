@@ -1,4 +1,3 @@
-import { ProjectManager } from "..";
 import type { Executor } from "../api/executor";
 import type { AudioEngine } from "../audioEngine/audioengine";
 import { EngineCommands } from "../audioEngine/commands";
