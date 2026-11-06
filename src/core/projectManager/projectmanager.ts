@@ -26,7 +26,6 @@ import { start_from_file } from "./projectFileHandler";
 import { openAudioFilePicker } from "../files/fileUtil";
 import { InternalProjectManager } from "./internalProjectManager";
 import { applyGuard } from "../util/util";
-import { UiCommandsManager } from "../commands/uiCommands";
 import { SideCar, SideCarEvent, type SideCarMessage } from "../sidecar/sidecar";
 import { SideCarHostRelay } from "../sidecar/sidecarHost";
 import { createSideCarPlugin } from "../sidecar/plugin";
@@ -42,7 +41,6 @@ import type { Command } from "../api/commands";
 const log = logger.module("ProjectManager");
 
 export class ProjectManager extends InternalProjectManager {
-    commands: UiCommandsManager;
     sidecar: SideCar;
     hostrelay: SideCarHostRelay;
     visitorrelay: SideCarVisitorRelay;
@@ -52,11 +50,6 @@ export class ProjectManager extends InternalProjectManager {
         log.info(LogCategory.SYSTEM, "Start", "Initialising ProjectManager");
         this.executor = new Executor();
         applyGuard(this);
-        this.commands = new UiCommandsManager(
-            this.engine,
-            this.stateManager,
-            (e) => this.error(e),
-        );
         this.sidecar = new SideCar();
         this.hostrelay = new SideCarHostRelay(this.executor, this.sidecar);
 
@@ -84,13 +77,6 @@ export class ProjectManager extends InternalProjectManager {
 
     private applyEvent() {
         for (const event of Object.values(EngineEvent)) {
-            this.commands.addEventListener(event, (e) =>
-                this.dispatchEvent(
-                    new CustomEvent(event, {
-                        detail: (e as CustomEvent).detail,
-                    }),
-                ),
-            );
             this.addEventListener(event, (e: CustomEventInit<unknown>) => {
                 if (this.sidecar.mode == "host") {
                     if (
@@ -275,7 +261,6 @@ export class ProjectManager extends InternalProjectManager {
         if (!skip_dialog) if (!this.stateManager.leaveConfirm()) return;
         await this.engine.dispose();
         this.engine = new AudioEngine();
-        this.commands.replace_engine(this.engine);
         this.set_command();
         await this.init(undefined, true);
         this.dispatchEvent(new Event(EngineEvent.ChangedLibrary));
@@ -293,7 +278,6 @@ export class ProjectManager extends InternalProjectManager {
 
         const { filename, sfx, bgm, load_failed } = result.value;
         await this.init(filename);
-        this.commands.replace_engine(this.engine);
         this.set_command();
 
         if (load_failed) this.warn(EngineError.PartialSoundLoadFailed);
@@ -498,42 +482,42 @@ export class ProjectManager extends InternalProjectManager {
     get_sfx_library() {
         if (this.sidecar.mode == "visitor")
             return this.visitorrelay.get_sfx_library();
-        return this.commands.get_sfx_library();
+        return this.engine.get_sfx_library();
     }
     get_bgm_library() {
         if (this.sidecar.mode == "visitor")
             return this.visitorrelay.get_bgm_library();
-        return this.commands.get_bgm_library();
+        return this.engine.get_bgm_library();
     }
     get_duration(id: string) {
-        return this.commands.get_duration(id);
+        return this.engine.get_duration(id);
     }
     get_waveform(id: string, buckets: number) {
-        return this.commands.get_waveform(id, buckets);
+        return this.engine.get_waveform(id, buckets);
     }
     get_soundinfo(id: string) {
-        return this.commands.get_soundinfo(id);
+        return this.engine.get_soundinfo(id);
     }
     get_group_children(parent: string) {
         if (this.sidecar.mode == "visitor")
             return this.visitorrelay.get_group_children(parent);
-        return this.commands.get_group_children(parent);
+        return this.engine.get_group_children(parent);
     }
     get_group_names(): string[] {
         if (this.sidecar.mode == "visitor")
             return this.visitorrelay.get_group_names();
-        return this.commands.get_group_names();
+        return this.engine.get_group_names();
     }
 
     get_bgm_info(id: "deckA" | "deckB") {
         if (this.sidecar.mode == "visitor")
             return this.visitorrelay.get_bgm_info(id);
-        return this.commands.get_bgm_info(id);
+        return this.engine.get_bgm_info(id);
     }
     get_gain(id: string): Result<number, AudioMixerError> {
         if (this.sidecar.mode == "visitor")
             return this.visitorrelay.get_gain(id);
-        return this.commands.get_gain(id);
+        return this.engine.get_gain(id);
     }
     async create_host(): Promise<
         Option<{
