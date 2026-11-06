@@ -198,40 +198,47 @@ onBeforeUnmount(() => {
 const emit = defineEmits(['saved']);
 
 const valid = ref(true)
+const saving = ref(false)
 const save = async () => {
-    await ProjectManager.run(EngineCommands.trim, { id: props.soundId, start: trimStart.value, end: trimEnd.value });
-    await ProjectManager.run(EngineCommands.set_sfx_play_mode, { id: props.soundId, mode: playbackOption.value });
+    if (saving.value) return;
+    saving.value = true;
+    try {
+        await ProjectManager.run(EngineCommands.trim, { id: props.soundId, start: trimStart.value, end: trimEnd.value });
+        await ProjectManager.run(EngineCommands.set_sfx_play_mode, { id: props.soundId, mode: playbackOption.value });
 
-    let targetGroup: string | undefined = selectedGroup.value || undefined;
-    if (selectedGroup.value === NEW_GROUP) {
-        const name = newGroupName.value.trim();
-        if (!name) {
-            groupError.value = 'グループ名を入力してください';
-            return;
+        let targetGroup: string | undefined = selectedGroup.value || undefined;
+        if (selectedGroup.value === NEW_GROUP) {
+            const name = newGroupName.value.trim();
+            if (!name) {
+                groupError.value = 'グループ名を入力してください';
+                return;
+            }
+            if (groupOptions.value.includes(name)) {
+                groupError.value = 'そのグループ名は既に使われています';
+                return;
+            }
+            const created = await ProjectManager.run(EngineCommands.create_group, { name });
+            if (!created.ok) {
+                groupError.value = created.value;
+                return;
+            }
+            targetGroup = name;
         }
-        if (groupOptions.value.includes(name)) {
-            groupError.value = 'そのグループ名は既に使われています';
-            return;
+
+        const currentMeta = ProjectManager.get_soundinfo(props.soundId);
+        if ((currentMeta?.group ?? undefined) !== targetGroup) {
+            const result = await ProjectManager.run(EngineCommands.move_sound_to_group, { id: props.soundId, newGroup: targetGroup });
+            if (!result.ok) {
+                groupError.value = result.value;
+                return;
+            }
         }
-        const created = await ProjectManager.run(EngineCommands.create_group, { name });
-        if (!created.ok) {
-            groupError.value = created.value;
-            return;
-        }
-        targetGroup = name;
+        await ProjectManager.run(EngineCommands.rename, { id: props.soundId, name: filename.value });
+
+        emit('saved');
+    } finally {
+        saving.value = false;
     }
-
-    const currentMeta = ProjectManager.get_soundinfo(props.soundId);
-    if ((currentMeta?.group ?? undefined) !== targetGroup) {
-        const result = await ProjectManager.run(EngineCommands.move_sound_to_group, { id: props.soundId, newGroup: targetGroup });
-        if (!result.ok) {
-            groupError.value = result.value;
-            return;
-        }
-    }
-    await ProjectManager.run(EngineCommands.rename, { id: props.soundId, name: filename.value });
-
-    emit('saved');
 }
 
 const deleteSFX = () => {
@@ -294,7 +301,7 @@ const deleteSFX = () => {
                 <SettingsRow label="効果音を削除する" chevron danger @click="deleteSFX()"></SettingsRow>
             </SettingsSection>
         </Settinglist>
-        <button @click="save()" :disabled="!valid">変更を保存</button>
+        <button @click="save()" :disabled="!valid || saving">変更を保存</button>
     </div>
 </template>
 
