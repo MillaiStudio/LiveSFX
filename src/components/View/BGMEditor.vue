@@ -10,9 +10,16 @@ import { EngineCommands } from '@/core/audioEngine/commands.ts';
 const props = defineProps<{ id: string, filaname: string }>();
 const emit = defineEmits(['saved'])
 const filename = ref(props.filaname)
+const saving = ref(false)
 const save = async () => {
-    await ProjectManager.run(EngineCommands.rename, { id: props.id, name: filename.value })
-    emit('saved')
+    if (saving.value) return;
+    saving.value = true;
+    try {
+        await ProjectManager.run(EngineCommands.rename, { id: props.id, name: filename.value })
+        emit('saved')
+    } finally {
+        saving.value = false;
+    }
 }
 const deleteBGM = () => {
     const decision = confirm("プロジェクトからファイルを削除しますか？");
@@ -32,6 +39,6 @@ const deleteBGM = () => {
                 <SettingsRow label="BGMを削除する" chevron danger @click="deleteBGM()" />
             </SettingsSection>
         </Settinglist>
-        <button @click="save" :disabled="!filename">変更を保存</button>
+        <button @click="save" :disabled="!filename || saving">変更を保存</button>
     </div>
 </template>
