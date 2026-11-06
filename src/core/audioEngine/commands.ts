@@ -203,7 +203,7 @@ const createAudioEngineCommandImpl = (engine: AudioEngine) => {
             hanlder: () => engine.get_sfx_library(),
         },
         "engine.get_bgm_library": {
-            hanlder: () => engine.get_bgm_library,
+            hanlder: () => engine.get_bgm_library(),
         },
         "engine.get_group_names": {
             hanlder: () => engine.get_group_names(),
