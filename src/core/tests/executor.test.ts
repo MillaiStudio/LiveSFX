@@ -16,6 +16,9 @@ import { Executor } from "../api/executor";
 import { defineCommand } from "../api/commands";
 
 const add = defineCommand<{ v: number }, number>("test.add");
+const addAsyncOut = defineCommand<{ v: number }, Promise<number>>(
+    "test.addAsyncOut",
+);
 
 const executorWith = (handler: (i: { v: number }) => unknown) => {
     const ex = new Executor();
@@ -23,8 +26,15 @@ const executorWith = (handler: (i: { v: number }) => unknown) => {
     return ex;
 };
 
-describe("Executor.run (async)", () => {
-    test("returns the handler result; afterProc sees it but cannot overwrite it", async () => {
+describe("Executor.run", () => {
+    test("returns the value synchronously, not a Promise", () => {
+        const ex = executorWith((i) => i.v + 1);
+        const out = ex.run(add, { v: 41 });
+        expect(out).toBe(42);
+        expect(out).not.toBeInstanceOf(Promise);
+    });
+
+    test("afterProc sees the handler result but cannot overwrite it", () => {
         const ex = executorWith((i) => i.v + 1);
         const seen: unknown[] = [];
         ex.set_hook(add, {
@@ -33,24 +43,8 @@ describe("Executor.run (async)", () => {
                 return "ignored" as never;
             },
         });
-        await expect(ex.run(add, { v: 41 })).resolves.toBe(42);
+        expect(ex.run(add, { v: 41 })).toBe(42);
         expect(seen).toEqual([42, { v: 41 }]);
-    });
-
-    test("throws when the handler is not registered", async () => {
-        const ex = new Executor();
-        await expect(ex.run(add, { v: 1 })).rejects.toThrow(
-            "Handler not registered",
-        );
-    });
-});
-
-describe("Executor.runSync", () => {
-    test("returns the value synchronously, not a Promise", () => {
-        const ex = executorWith((i) => i.v + 1);
-        const out = ex.runSync(add, { v: 41 });
-        expect(out).toBe(42);
-        expect(out).not.toBeInstanceOf(Promise);
     });
 
     test("hooks run in order: beforeProc may mutate input, afterProc gets result and input", () => {
@@ -70,7 +64,7 @@ describe("Executor.runSync", () => {
                 calls.push("before2");
             },
         });
-        expect(ex.runSync(add, { v: 10 })).toBe(22);
+        expect(ex.run(add, { v: 10 })).toBe(22);
         expect(calls).toEqual(["before1", "before2", "after1:22:11"]);
     });
 
@@ -84,35 +78,38 @@ describe("Executor.runSync", () => {
                 afterRan = true;
             },
         });
-        expect(ex.runSync(add, { v: 1 })).toBeUndefined();
+        expect(ex.run(add, { v: 1 })).toBeUndefined();
         expect(handler).not.toHaveBeenCalled();
         expect(afterRan).toBe(false);
     });
 
-    test("throws when the handler returns a Promise", () => {
-        const ex = executorWith(async (i) => i.v);
-        expect(() => ex.runSync(add, { v: 1 })).toThrow(
-            "Async handler cannot run in runSync",
-        );
+    test("returns a Promise as-is when it is the handler's declared output", async () => {
+        const ex = new Executor();
+        ex.register(addAsyncOut, {
+            hanlder: (i) => Promise.resolve(i.v + 1),
+        });
+        const out = ex.run(addAsyncOut, { v: 41 });
+        expect(out).toBeInstanceOf(Promise);
+        await expect(out).resolves.toBe(42);
     });
 
     test("throws when a hook returns a Promise", () => {
         const ex = executorWith((i) => i.v);
         ex.set_hook(add, { beforeProc: async () => {} });
-        expect(() => ex.runSync(add, { v: 1 })).toThrow(
-            "Async hook cannot run in runSync",
+        expect(() => ex.run(add, { v: 1 })).toThrow(
+            "Async hook cannot run in run",
         );
 
         const ex2 = executorWith((i) => i.v);
         ex2.set_hook(add, { afterProc: async () => {} });
-        expect(() => ex2.runSync(add, { v: 1 })).toThrow(
-            "Async hook cannot run in runSync",
+        expect(() => ex2.run(add, { v: 1 })).toThrow(
+            "Async hook cannot run in run",
         );
     });
 
     test("throws when the handler is not registered", () => {
         const ex = new Executor();
-        expect(() => ex.runSync(add, { v: 1 })).toThrow(
+        expect(() => ex.run(add, { v: 1 })).toThrow(
             "Handler not registered",
         );
     });

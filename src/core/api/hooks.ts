@@ -4,11 +4,6 @@ export interface HookContext<I> {
 }
 
 export interface Hook<I = any, O = any> {
-    beforeProc?: (ctx: HookContext<I>) => void | Promise<void>;
-    afterProc?: (result: O, input: I) => void | Promise<void>;
-}
-
-export interface SyncHook<I = any, O = any> {
     beforeProc?: (ctx: HookContext<I>) => void;
     afterProc?: (result: O, input: I) => void;
 }

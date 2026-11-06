@@ -4,7 +4,7 @@ import type { Hook } from "./hooks";
 
 const log = logger.module("Executor");
 
-type Handler<I, O> = (input: I) => O | Promise<O>;
+type Handler<I, O> = (input: I) => O;
 
 export interface CommandProc<I, O> {
     hanlder: Handler<I, O>;
@@ -31,55 +31,11 @@ export class Executor {
         log.debug("SYSTEM", "registar command", `registard : ${command.name}`);
         this.handlers.set(command.name, proccess);
     }
-    async run<I, O>(
-        command: Command<I, O>,
-        ...args: I extends void ? [] : [input: I]
-    ): Promise<O> {
-        log.info("SYSTEM", "run", `run : ${command.name}`);
-        const proc = this.handlers.get(command.name);
-        const hooks = this.hooks.get(command.name) ?? [];
-        if (!proc || !proc.hanlder) {
-            log.error(
-                "SYSTEM",
-                "HandlerError",
-                `Handler not registered: ${command.name}`,
-            );
-            throw new Error(`Handler not registered: ${command.name}`);
-        }
-        let run = true;
-        const prevent = () => (run = false);
-        for (const hook of hooks) {
-            if (hook.beforeProc) {
-                log.debug(
-                    "SYSTEM",
-                    "HookedBeforeRun",
-                    `${command.name} - before`,
-                );
-                await hook.beforeProc({ input: args[0], prevent });
-            }
-        }
-        let res;
-        if (run) {
-            res = await proc.hanlder(args[0]);
-            for (const hook of hooks) {
-                if (hook.afterProc) {
-                    log.debug(
-                        "SYSTEM",
-                        "HookedAfterRun",
-                        `${command.name} - after`,
-                    );
-                    await hook.afterProc(res, args[0]);
-                }
-            }
-        }
-        log.info("SYSTEM", "Ran", `Ran command-${command.name}`, { data: res });
-        return await res;
-    }
-    runSync<I, O>(
+    run<I, O>(
         command: Command<I, O>,
         ...args: I extends void ? [] : [input: I]
     ): O {
-        log.info("SYSTEM", "runSync", `runSync : ${command.name}`);
+        log.info("SYSTEM", "run", `run : ${command.name}`);
         const proc = this.handlers.get(command.name);
         const hooks = this.hooks.get(command.name) ?? [];
         if (!proc || !proc.hanlder) {
@@ -104,10 +60,10 @@ export class Executor {
                     log.error(
                         "SYSTEM",
                         "HandlerError",
-                        `Async hook cannot run in runSync: ${command.name}`,
+                        `Async hook cannot run in run: ${command.name}`,
                     );
                     throw new Error(
-                        `Async hook cannot run in runSync: ${command.name}`,
+                        `Async hook cannot run in run: ${command.name}`,
                     );
                 }
             }
@@ -115,16 +71,6 @@ export class Executor {
         let res;
         if (run) {
             res = proc.hanlder(args[0]);
-            if (isPromiseLike(res)) {
-                log.error(
-                    "SYSTEM",
-                    "HandlerError",
-                    `Async handler cannot run in runSync: ${command.name}`,
-                );
-                throw new Error(
-                    `Async handler cannot run in runSync: ${command.name}`,
-                );
-            }
             for (const hook of hooks) {
                 if (hook.afterProc) {
                     log.debug(
@@ -137,16 +83,16 @@ export class Executor {
                         log.error(
                             "SYSTEM",
                             "HandlerError",
-                            `Async hook cannot run in runSync: ${command.name}`,
+                            `Async hook cannot run in run: ${command.name}`,
                         );
                         throw new Error(
-                            `Async hook cannot run in runSync: ${command.name}`,
+                            `Async hook cannot run in run: ${command.name}`,
                         );
                     }
                 }
             }
         }
-        log.info("SYSTEM", "RanSync", `Ran sync command-${command.name}`, {
+        log.info("SYSTEM", "Ran", `Ran command-${command.name}`, {
             data: res,
         });
         return res as O;
