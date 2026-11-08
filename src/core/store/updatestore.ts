@@ -45,7 +45,7 @@ export const useUpdateStore = defineStore("update", () => {
 
         const notif_store = useNotifState();
 
-        notif_store.notif_queue.push({
+        notif_store.notify({
             id: generateUUID(),
             type: "info",
             title: "新しいバージョンが利用可能になりました",
@@ -77,16 +77,15 @@ export const useUpdateStore = defineStore("update", () => {
 
         try {
             if (!registration) {
-                const id = generateUUID();
-                notif_store.notif_queue.push({
-                    id,
-                    type: "warn",
-                    title: "更新の取得に失敗しました",
-                    message: "LiveSFXの更新を取得できませんでした",
-                });
-                setTimeout(() => {
-                    notif_store.dismissNotif(id);
-                }, 3000);
+                notif_store.notifyFor(
+                    {
+                        id: generateUUID(),
+                        type: "warn",
+                        title: "更新の取得に失敗しました",
+                        message: "LiveSFXの更新を取得できませんでした",
+                    },
+                    3000,
+                );
                 return;
             }
             await registration.update();
@@ -94,15 +93,14 @@ export const useUpdateStore = defineStore("update", () => {
             const found = !!(registration.installing || registration.waiting);
 
             if (!found) {
-                const id = generateUUID();
-
-                notif_store.notif_queue.push({
-                    id,
-                    type: "info",
-                    title: "最新の状態です",
-                });
-
-                setTimeout(() => notif_store.dismissNotif(id), 3000);
+                notif_store.notifyFor(
+                    {
+                        id: generateUUID(),
+                        type: "info",
+                        title: "最新の状態です",
+                    },
+                    3000,
+                );
             }
         } finally {
             checking.value = false;

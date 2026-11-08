@@ -56,7 +56,7 @@ const persist = (storeId: string, storageKey: string, state: unknown) => {
         localStorage.setItem(storageKey, JSON.stringify(state));
     } catch (e) {
         const store = useNotifState();
-        store.notif_queue.push({
+        store.notify({
             id: generateUUID(),
             type: "warn",
             message: `[persist] ${storeId} の設定の保存に失敗しました`,

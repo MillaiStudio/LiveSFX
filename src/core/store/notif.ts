@@ -10,6 +10,24 @@ import { generateUUID } from "../util/util";
 export const useNotifState = defineStore("notif", () => {
     const notif_queue = ref<Notificatin[]>([]);
 
+    const notify = (n: Notificatin): string => {
+        notif_queue.value.push(n);
+        return n.id;
+    };
+
+    const notifyFor = (n: Notificatin, durationMs: number): string => {
+        const id = notify(n);
+        setTimeout(() => dismissNotif(id), durationMs);
+        return id;
+    };
+
+    const dismissNotif = (id: string) => {
+        const index = notif_queue.value.findIndex((v) => id === v.id);
+        if (index !== -1) {
+            notif_queue.value.splice(index, 1);
+        }
+    };
+
     ProjectManager.addEventListener(EngineEvent.Error, (e) => {
         const event = e as CustomEvent<{
             type: EngineError | EngineException | string;
@@ -27,30 +45,21 @@ export const useNotifState = defineStore("notif", () => {
             location.reload();
         };
         const onClick = type == "panic" ? restart : () => dismissNotif(id);
-        notif_queue.value.push({
-            id,
-            type: "critical",
-            title: "エラーが発生しました",
-            message: message,
-            onClick,
-        });
-        setTimeout(() => {
-            const index = notif_queue.value.findIndex((v) => id === v.id);
-
-            if (index !== -1) {
-                notif_queue.value.splice(index, 1);
-            }
-        }, 1000);
+        notifyFor(
+            {
+                id,
+                type: "critical",
+                title: "エラーが発生しました",
+                message: message,
+                onClick,
+            },
+            1000,
+        );
     });
 
-    const dismissNotif = (id: string) => {
-        const index = notif_queue.value.findIndex((v) => id === v.id);
-        if (index !== -1) {
-            notif_queue.value.splice(index, 1);
-        }
-    };
-
     return {
+        notify,
+        notifyFor,
         dismissNotif,
         notif_queue,
     };

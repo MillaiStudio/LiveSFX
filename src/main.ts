@@ -61,7 +61,7 @@ const updateSW = registerSW({
         const store = useNotifState();
         const id = generateUUID();
         const timer = setTimeout(() => store.dismissNotif(id), 2000);
-        store.notif_queue.push({
+        store.notify({
             id,
             title: "ダウンロード済み",
             message: "LiveSFXはオフラインで使用可能です。",
