@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Notificatin } from '@/core/store/enginestore_type';
+import type { Notificatin } from '@/core/store/notif_type';
 import { useNotifState } from '@/core/store/notif';
 import { CircleQuestionMark, Info, ShieldAlert, Skull } from '@lucide/vue';
 
