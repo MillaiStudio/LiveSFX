@@ -7,7 +7,7 @@ const log = logger.module("Executor");
 type Handler<I, O> = (input: I) => O;
 
 export interface CommandProc<I, O> {
-    hanlder: Handler<I, O>;
+    handler: Handler<I, O>;
 }
 
 const isPromiseLike = (value: unknown): value is PromiseLike<unknown> => {
@@ -38,7 +38,7 @@ export class Executor {
         log.info("SYSTEM", "run", `run : ${command.name}`);
         const proc = this.handlers.get(command.name);
         const hooks = this.hooks.get(command.name) ?? [];
-        if (!proc || !proc.hanlder) {
+        if (!proc || !proc.handler) {
             log.error(
                 "SYSTEM",
                 "HandlerError",
@@ -70,7 +70,7 @@ export class Executor {
         }
         let res;
         if (run) {
-            res = proc.hanlder(args[0]);
+            res = proc.handler(args[0]);
             for (const hook of hooks) {
                 if (hook.afterProc) {
                     log.debug(

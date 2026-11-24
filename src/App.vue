@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import AppBar, { type MenuList } from './components/AppBar.vue';
 import { ProjectManager, } from './core/index.ts';
-import { useEngineState } from './core/store/enginestore.ts';
+import { useSideCarStore } from './core/store/sidecar_store.ts';
 import NotifCentre from "./components/View/NotifCentre.vue";
 import Spinner from "./components/Spinner.vue";
-import { EngineProcState } from "./core/store/enginestore_type.ts";
+import { useProcState, EngineProcState } from "./core/store/procstore.ts";
 import PadView from "./components/View/PadView.vue";
 import Tab, { type TabItem } from "./components/Tab.vue";
 import { computed, defineAsyncComponent, onMounted, ref, useTemplateRef } from 'vue';
@@ -42,7 +42,8 @@ const Footer = defineAsyncComponent({
 const DragAndDropArea = defineAsyncComponent({
     loader: () => import('./components/View/DragFile.vue')
 })
-const engine_store = useEngineState();
+const engine_store = useProcState();
+const sidecar_store = useSideCarStore();
 const ui_store = useUiState();
 const config_store = useConfigStore();
 const menu = computed((): MenuList[] => {
@@ -91,8 +92,8 @@ const menu = computed((): MenuList[] => {
         ]
     }
     let menu = []
-    if (engine_store.sidecar_mode !== 'visitor') menu.push(file, sound)
-    if (engine_store.sidecar_mode) menu.push(sidecar)
+    if (sidecar_store.sidecar_mode !== 'visitor') menu.push(file, sound)
+    if (sidecar_store.sidecar_mode) menu.push(sidecar)
     return menu
 })
 

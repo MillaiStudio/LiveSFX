@@ -22,7 +22,7 @@ const addAsyncOut = defineCommand<{ v: number }, Promise<number>>(
 
 const executorWith = (handler: (i: { v: number }) => unknown) => {
     const ex = new Executor();
-    ex.register(add, { hanlder: handler as never });
+    ex.register(add, { handler: handler as never });
     return ex;
 };
 
@@ -86,7 +86,7 @@ describe("Executor.run", () => {
     test("returns a Promise as-is when it is the handler's declared output", async () => {
         const ex = new Executor();
         ex.register(addAsyncOut, {
-            hanlder: (i) => Promise.resolve(i.v + 1),
+            handler: (i) => Promise.resolve(i.v + 1),
         });
         const out = ex.run(addAsyncOut, { v: 41 });
         expect(out).toBeInstanceOf(Promise);

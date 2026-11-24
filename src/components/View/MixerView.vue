@@ -3,14 +3,14 @@ import { computed } from 'vue';
 import { ProjectManager } from '@/core';
 import { MIXER_MASTER_CHANNEL_ID } from '@/core/audioEngine/mixer.ts';
 import ChannelComponent from '../Channel.vue';
-import { useEngineState } from '@/core/store/enginestore.ts';
+import { useLibraryState } from '@/core/store/librarystore.ts';
 import { storeToRefs } from 'pinia';
 import { UNGROUPED } from '@/core/constants.ts';
 import { generateUUID } from '@/core/util/util.ts';
 import { EngineCommands } from '@/core/audioEngine/commands.ts';
 
 const engine = ProjectManager;
-const store = useEngineState();
+const store = useLibraryState();
 const { groupNames } = storeToRefs(store);
 
 const set_gain = (e: number, id?: string) => {

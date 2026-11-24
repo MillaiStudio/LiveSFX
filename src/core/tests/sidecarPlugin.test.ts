@@ -30,9 +30,9 @@ const setup = (mode: "host" | "visitor" | undefined) => {
     const sidecar = { mode, send_command } as unknown as SideCar;
     const executor = new Executor();
     const handler = vi.fn((input: unknown) => ({ echoed: input }));
-    executor.register(EngineCommands.play, { hanlder: handler as never });
-    executor.register(EngineCommands.set_gain, { hanlder: handler as never });
-    executor.register(EngineCommands.loop_bgm, { hanlder: handler as never });
+    executor.register(EngineCommands.play, { handler: handler as never });
+    executor.register(EngineCommands.set_gain, { handler: handler as never });
+    executor.register(EngineCommands.loop_bgm, { handler: handler as never });
     createSideCarPlugin(sidecar).install(executor);
     return { executor, handler, send_command };
 };

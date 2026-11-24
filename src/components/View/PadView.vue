@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { defineAsyncComponent, ref, reactive, computed, nextTick, watch } from 'vue';
 import { ProjectManager } from '../../core/index.ts';
-import { useEngineState } from '../../core/store/enginestore.ts';
+import { useLibraryState } from '../../core/store/librarystore.ts';
+import { usePlaybackState } from '../../core/store/playbackstore.ts';
 import { useConfigStore } from '../../core/store/configstore.ts';
 import Modal from '../Modal.vue';
 
@@ -10,7 +11,8 @@ import { useUiState } from '@/core/store/ui_state.ts';
 import { EngineCommands } from '@/core/audioEngine/commands.ts';
 
 const selectedSound = ref();
-const store = useEngineState();
+const store = useLibraryState();
+const playback_store = usePlaybackState();
 const config = useConfigStore();
 const ui_store = useUiState();
 
@@ -426,7 +428,7 @@ const renameGroup = (name: string) => {
                     <div class="card" :class="{
                         vibrate: ui_store.ui_mode === 'edit' && dragState.id !== id,
                         'is-dragging-source': dragState.id === id,
-                        playing: store.playing_sfx.findIndex(v => v == id) >= 0
+                        playing: playback_store.playing_sfx.findIndex(v => v == id) >= 0
                     }">
                         <h3>{{ soundsById.get(id)?.filename }}</h3>
                     </div>

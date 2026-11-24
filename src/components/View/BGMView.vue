@@ -4,7 +4,9 @@ import DeckPlayer from '../deckPlayer.vue';
 import Settinglist from '../settinglist.vue';
 import SettingsRow from '../settingsRow.vue';
 import SettingsSection from '../settingsSection.vue';
-import { useEngineState } from '@/core/store/enginestore.ts';
+import { useLibraryState } from '@/core/store/librarystore.ts';
+import { usePlaybackState } from '@/core/store/playbackstore.ts';
+import { useSideCarStore } from '@/core/store/sidecar_store.ts';
 import { ProjectManager } from '@/core/index.ts';
 import { EngineCommands } from '@/core/audioEngine/commands.ts';
 import Modal from '../Modal.vue';
@@ -12,7 +14,9 @@ import Spinner from '../Spinner.vue';
 import { EngineEvent } from '@/core/types/types.ts';
 import { useUiState } from '@/core/store/ui_state.ts';
 
-const store = useEngineState();
+const library_store = useLibraryState();
+const playback_store = usePlaybackState();
+const sidecar_store = useSideCarStore();
 const ui_store = useUiState();
 let dragging = ref(false);
 const BGMEditor = defineAsyncComponent({
@@ -47,9 +51,9 @@ const applyCrossfade = (position: number) => {
 }
 
 ProjectManager.addEventListener(EngineEvent.CrossFaded, (e: CustomEventInit<number>) => {
-    if (store.sidecar_mode == undefined && e.detail === null) return
+    if (sidecar_store.sidecar_mode == undefined && e.detail === null) return
     const local_gain = ProjectManager.get_gain('deckA')
-    if (!crossfade.value || (e.detail == undefined && store.sidecar_mode == 'visitor')) return
+    if (!crossfade.value || (e.detail == undefined && sidecar_store.sidecar_mode == 'visitor')) return
     if (e.detail !== undefined && e.detail !== null) {
         const theta = Math.acos(e.detail);
         crossfade.value.value = String(theta / (Math.PI / 2) * 100)
@@ -127,8 +131,8 @@ const onPointerUp = (e: PointerEvent) => {
     <div style="padding: 12px;">
         <div class="container">
             <div class="grid">
-                <DeckPlayer deck-id="deckA" colour="indigo" :deck_info="store.deck[0]" />
-                <DeckPlayer deck-id="deckB" colour="yellow" :deck_info="store.deck[1]" />
+                <DeckPlayer deck-id="deckA" colour="indigo" :deck_info="playback_store.deck[0]" />
+                <DeckPlayer deck-id="deckB" colour="yellow" :deck_info="playback_store.deck[1]" />
             </div>
             <br>
             <input ref="crossfader" type="range" style="width: 100%; height: 2rem; touch-action: none;"
@@ -139,14 +143,14 @@ const onPointerUp = (e: PointerEvent) => {
         padding: 12px 0; margin: 12px; border-radius: 12px;">
             <Settinglist>
                 <SettingsSection title="曲一覧">
-                    <div v-if="store.bgm_library.length == 0"
+                    <div v-if="library_store.bgm_library.length == 0"
                         style="background-color: var(--gray-5); width: 100%; text-align: center; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 12px;">
                         <p>曲がまだありません。</p>
                         <button @click="ProjectManager.add_bgm()"
-                            v-if="store.sidecar_mode !== 'visitor'">曲を追加する</button>
+                            v-if="sidecar_store.sidecar_mode !== 'visitor'">曲を追加する</button>
                         <p v-else>ホストから曲を追加してください。</p>
                     </div>
-                    <SettingsRow v-for="value in store.bgm_library" :label="value.filename" :key="value.id"
+                    <SettingsRow v-for="value in library_store.bgm_library" :label="value.filename" :key="value.id"
                         :chevron="ui_store.ui_mode == 'edit'" @click="show_editor(value.id)">
                         <div class="row-actions" v-show="ui_store.ui_mode == 'live'">
                             <button @click="load_to_deck('deckA', value.id)">A</button>

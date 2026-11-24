@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue';
 import { ProjectManager } from '../../core/index.ts';
-import { useEngineState } from '../../core/store/enginestore.ts';
+
 import { SFXPlayMode } from '@/core/audioEngine/sounds.ts';
 import SettingsSection from '../settingsSection.vue';
 import Settinglist from '../settinglist.vue';

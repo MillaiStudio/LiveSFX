@@ -1,7 +1,7 @@
 import { EngineEvent, Err, Ok, type Result } from "../types/types";
 import type { SoundMeta } from "../audioEngine/sounds";
 import type { MixerChannelSnapshot } from "../audioEngine/mixer";
-import type { BGMPlayerInfo } from "../store/enginestore";
+import type { BGMPlayerInfo } from "../store/playbackstore";
 import type { DeckID } from "../audioEngine/audioengine";
 import { generateUUID } from "../util/util";
 import { LogCategory, logger } from "../log/log";

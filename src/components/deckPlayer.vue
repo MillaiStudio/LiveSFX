@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ProjectManager } from '@/core';
 import { EngineCommands } from '@/core/audioEngine/commands.ts';
-import { useEngineState, type BGMPlayerInfo } from '@/core/store/enginestore';
+import { usePlaybackState, type BGMPlayerInfo } from '@/core/store/playbackstore';
 import { Eject, Pause, Play, Repeat, X } from '@lucide/vue';
 import { storeToRefs } from 'pinia';
 import { computed, ref, useTemplateRef } from 'vue';
@@ -10,7 +10,7 @@ const props = defineProps<{ colour: string, deckId: "deckA" | "deckB", deck_info
 
 const seek = useTemplateRef('seekbar');
 
-const store = useEngineState();
+const store = usePlaybackState();
 const { deck } = storeToRefs(store);
 
 

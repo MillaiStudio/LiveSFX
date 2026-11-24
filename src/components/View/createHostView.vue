@@ -9,10 +9,10 @@ import { SupportedShareAPI } from '@/core/util/compatibility.ts';
 import SettingsRow from '../settingsRow.vue';
 import Modal from '../Modal.vue';
 import QRreader from '../QRreader.vue';
-import { useEngineState } from '@/core/store/enginestore.ts';
+import { useSideCarStore } from '@/core/store/sidecar_store.ts';
 import { useConfigStore } from '@/core/store/configstore.ts';
 
-const store = useEngineState()
+const store = useSideCarStore()
 const config_store = useConfigStore();
 
 const emit = defineEmits(['close'])

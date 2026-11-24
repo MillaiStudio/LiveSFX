@@ -12,7 +12,7 @@ import {
     type Option,
     type Result,
 } from "../types/types";
-import { EngineProcState } from "../store/enginestore_type";
+import { EngineProcState } from "../store/procstore";
 import { EngineError, EngineException } from "../types/error_types";
 import { PROJECT_FILE_EX } from "../constants";
 import {
@@ -34,7 +34,7 @@ import { LogCategory, logger } from "../log/log";
 import { Executor } from "../api/executor";
 import {
     EngineCommands,
-    SetAudioEngineCommands,
+    registerEngineCommands,
 } from "../audioEngine/commands";
 import type { Command } from "../api/commands";
 
@@ -65,7 +65,7 @@ export class ProjectManager extends InternalProjectManager {
             },
         );
         this.applyEvent();
-        this.set_command();
+        registerEngineCommands(this.executor, () => this.engine);
         createSideCarPlugin(this.sidecar).install(this.executor);
         this.set_hooks();
         log.info(
@@ -142,7 +142,7 @@ export class ProjectManager extends InternalProjectManager {
                 switch (data.kind) {
                     case "command":
                         try {
-                            const result = this.hostrelay.excec(data.payload);
+                            const result = this.hostrelay.executeRemote(data.payload);
                             if (result instanceof Promise) {
                                 result.catch((_err) => {});
                             }
@@ -154,9 +154,6 @@ export class ProjectManager extends InternalProjectManager {
                 }
             },
         );
-    }
-    private set_command() {
-        SetAudioEngineCommands(this.executor, this.engine);
     }
     private set_hooks() {
         const dispatch = (event: EngineEvent, detail?: unknown) => {
@@ -261,7 +258,6 @@ export class ProjectManager extends InternalProjectManager {
         if (!skip_dialog) if (!this.stateManager.leaveConfirm()) return;
         await this.engine.dispose();
         this.engine = new AudioEngine();
-        this.set_command();
         await this.init(undefined, true);
         this.dispatchEvent(new Event(EngineEvent.ChangedLibrary));
     }
@@ -278,7 +274,6 @@ export class ProjectManager extends InternalProjectManager {
 
         const { filename, sfx, bgm, load_failed } = result.value;
         await this.init(filename);
-        this.set_command();
 
         if (load_failed) this.warn(EngineError.PartialSoundLoadFailed);
 

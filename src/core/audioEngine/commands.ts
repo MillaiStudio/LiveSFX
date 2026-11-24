@@ -1,5 +1,5 @@
 import { defineCommand as d } from "../api/commands";
-import type { CommandProc, Executor } from "../api/executor";
+import type { Executor } from "../api/executor";
 import type { AudioEngineError, AudioMixerError } from "../types/err";
 import type { Result } from "../types/types";
 import type { AudioEngine, DeckID, PlayResult } from "./audioengine";
@@ -75,153 +75,90 @@ const commands = {
     ),
 };
 
-const createAudioEngineCommandImpl = (engine: AudioEngine) => {
-    const procs: Record<string, CommandProc<any, any>> = {
-        "engine.play": {
-            hanlder: (args: {
-                id: string;
-                options?: {
-                    start?: number;
-                    end?: number;
-                    beforestart?: (id: string) => void;
-                    onended?: (id: string) => void;
-                };
-            }) => {
-                return engine.play(args.id, args.options);
-            },
-        },
-        "engine.stop": {
-            hanlder: (args: { source_id: string }) => {
-                return engine.stop(args.source_id);
-            },
-        },
-        "engine.stop_all_sfx": {
-            hanlder: () => {
-                return engine.stop_all_sfx();
-            },
-        },
-        "engine.trim": {
-            hanlder: (args: { id: string; start: number; end: number }) => {
-                return engine.trim(args.id, args.start, args.end);
-            },
-        },
-        "engine.set_sfx_play_mode": {
-            hanlder: (args: { id: string; mode: SFXPlayMode }) => {
-                return engine.set_sfx_play_mode(args.id, args.mode);
-            },
-        },
-        "engine.discard_sound": {
-            hanlder: (args: { id: string }) => {
-                return engine.discard_sound(args.id);
-            },
-        },
-        "engine.create_group": {
-            hanlder: (args: { name: string }) => {
-                return engine.createChannel(args.name);
-            },
-        },
-        "engine.delete_group": {
-            hanlder: (args: { name: string }) => {
-                return engine.delete_group(args.name);
-            },
-        },
-        "engine.rename_group": {
-            hanlder: (args: { oldName: string; newName: string }) => {
-                return engine.rename_group(args.oldName, args.newName);
-            },
-        },
-        "engine.move_sound_to_group": {
-            hanlder: (args: { id: string; newGroup?: string }) => {
-                return engine.move_channel_to_group(args.id, args.newGroup);
-            },
-        },
-        "engine.move_sound": {
-            hanlder: (args: { id: string; toIndex: number }) => {
-                return engine.move_sound(args.id, args.toIndex);
-            },
-        },
-        "engine.rename": {
-            hanlder: (args: { id: string; name: string }) => {
-                return engine.rename(args.id, args.name);
-            },
-        },
-        "engine.set_gain": {
-            hanlder: (args: {
-                id: string;
-                gain: number;
-                initialised?: boolean;
-            }) => {
-                return engine.set_gain(args.id, args.gain);
-            },
-        },
-        "engine.ducking": {
-            hanlder: () => {
-                return engine.ducking();
-            },
-        },
-        "engine.load_bgm": {
-            hanlder: (args: { id: DeckID; file: BGMFile }) => {
-                return engine.load_bgm(args.id, args.file);
-            },
-        },
-        "engine.play_bgm": {
-            hanlder: (args: { id: DeckID }) => {
-                return engine.play_bgm(args.id);
-            },
-        },
-        "engine.pause_bgm": {
-            hanlder: (args: { id: DeckID }) => {
-                return engine.pause_bgm(args.id);
-            },
-        },
-        "engine.stop_bgm": {
-            hanlder: (args: { id: DeckID }) => {
-                return engine.stop_bgm(args.id);
-            },
-        },
-        "engine.seek_bgm": {
-            hanlder: (args: { id: DeckID; time: number }) => {
-                return engine.seek_bgm(args.id, args.time);
-            },
-        },
-        "engine.unload_bgm": {
-            hanlder: (args: { id: DeckID }) => {
-                return engine.unload_bgm(args.id);
-            },
-        },
-        "engine.load_bgm_to_deck": {
-            hanlder: (args: { id: DeckID; bgmId: string }) => {
-                return engine.load_bgm_to_deck(args.id, args.bgmId);
-            },
-        },
-        "engine.loop_bgm": {
-            hanlder: (args: { id: DeckID }) => {
-                return engine.loop_bgm(args.id);
-            },
-        },
-        "engine.get_sfx_library": {
-            hanlder: () => engine.get_sfx_library(),
-        },
-        "engine.get_bgm_library": {
-            hanlder: () => engine.get_bgm_library(),
-        },
-        "engine.get_group_names": {
-            hanlder: () => engine.get_group_names(),
-        },
-        "engine.get_all_channels": {
-            hanlder: () => engine.get_all_channels(),
-        },
-    };
-    return procs;
-};
-
-export const SetAudioEngineCommands = (
+export const registerEngineCommands = (
     executor: Executor,
-    engine: AudioEngine,
+    getEngine: () => AudioEngine,
 ) => {
-    const propc = createAudioEngineCommandImpl(engine);
-    for (let command of Object.values(commands)) {
-        executor.register(command, propc[command.name]!);
-    }
+    executor.register(commands.play, {
+        handler: (input) => getEngine().play(input.id, input.options),
+    });
+    executor.register(commands.stop, {
+        handler: (input) => getEngine().stop(input.source_id),
+    });
+    executor.register(commands.stop_all_sfx, {
+        handler: () => getEngine().stop_all_sfx(),
+    });
+    executor.register(commands.trim, {
+        handler: (input) => getEngine().trim(input.id, input.start, input.end),
+    });
+    executor.register(commands.set_sfx_play_mode, {
+        handler: (input) => getEngine().set_sfx_play_mode(input.id, input.mode),
+    });
+    executor.register(commands.discard_sound, {
+        handler: (input) => getEngine().discard_sound(input.id),
+    });
+    executor.register(commands.create_group, {
+        handler: (input) => getEngine().createChannel(input.name),
+    });
+    executor.register(commands.delete_group, {
+        handler: (input) => getEngine().delete_group(input.name),
+    });
+    executor.register(commands.rename_group, {
+        handler: (input) =>
+            getEngine().rename_group(input.oldName, input.newName),
+    });
+    executor.register(commands.move_sound_to_group, {
+        handler: (input) =>
+            getEngine().move_channel_to_group(input.id, input.newGroup),
+    });
+    executor.register(commands.move_sound, {
+        handler: (input) => getEngine().move_sound(input.id, input.toIndex),
+    });
+    executor.register(commands.rename, {
+        handler: (input) => getEngine().rename(input.id, input.name),
+    });
+    executor.register(commands.set_gain, {
+        handler: (input) => getEngine().set_gain(input.id, input.gain),
+    });
+    executor.register(commands.ducking, {
+        handler: () => getEngine().ducking(),
+    });
+    executor.register(commands.load_bgm, {
+        handler: (input) => getEngine().load_bgm(input.id, input.file),
+    });
+    executor.register(commands.play_bgm, {
+        handler: (input) => getEngine().play_bgm(input.id),
+    });
+    executor.register(commands.pause_bgm, {
+        handler: (input) => getEngine().pause_bgm(input.id),
+    });
+    executor.register(commands.stop_bgm, {
+        handler: (input) => getEngine().stop_bgm(input.id),
+    });
+    executor.register(commands.seek_bgm, {
+        handler: (input) => getEngine().seek_bgm(input.id, input.time),
+    });
+    executor.register(commands.unload_bgm, {
+        handler: (input) => getEngine().unload_bgm(input.id),
+    });
+    executor.register(commands.load_bgm_to_deck, {
+        handler: (input) =>
+            getEngine().load_bgm_to_deck(input.id, input.bgmId),
+    });
+    executor.register(commands.loop_bgm, {
+        handler: (input) => getEngine().loop_bgm(input.id),
+    });
+    executor.register(commands.get_sfx_library, {
+        handler: () => getEngine().get_sfx_library(),
+    });
+    executor.register(commands.get_bgm_library, {
+        handler: () => getEngine().get_bgm_library(),
+    });
+    executor.register(commands.get_group_names, {
+        handler: () => getEngine().get_group_names(),
+    });
+    executor.register(commands.get_all_channels, {
+        handler: () => getEngine().get_all_channels(),
+    });
 };
 export { commands as EngineCommands };

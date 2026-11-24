@@ -1,7 +1,7 @@
 import { AudioEngine, PlayerEvent } from "../audioEngine/audioengine";
 import { LogCategory, logger } from "../log/log";
 import { useConfigStore } from "../store/configstore";
-import { EngineProcState } from "../store/enginestore_type";
+import { EngineProcState } from "../store/procstore";
 import { EngineError, EngineException } from "../types/error_types";
 import { EngineEvent } from "../types/types";
 import { check_audio_compatibility } from "../util/compatibility";

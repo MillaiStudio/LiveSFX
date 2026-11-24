@@ -6,13 +6,11 @@ import SettingsSection from '@/components/settingsSection.vue';
 import CreateHostView from '../createHostView.vue';
 import { ref } from 'vue';
 import ConnectToHostView from '../connectToHostView.vue';
-import { useEngineState } from '@/core/store/enginestore.ts';
 import { ProjectManager } from '@/core/index.ts';
 import { useConfigStore } from '@/core/store/configstore.ts';
 import Toggle from '@/components/toggle.vue';
 import { useSideCarStore } from '@/core/store/sidecar_store.ts';
 
-const store = useEngineState()
 const config_store = useConfigStore()
 const mode = ref<'host' | 'visitor' | undefined>()
 
@@ -47,14 +45,14 @@ const close = (name: string | undefined, id: string) => {
                 <p style="color: var(--label-boring);">LAN内の別のデバイスを接続し、そのデバイスからLiveSFXの効果音やBGMを遠隔操作できます。 </p>
             </div>
         </SettingsSection>
-        <SettingsSection title="SideCar" v-if="store.sidecar_mode !== 'visitor'">
-            <SettingsRow :label="!store.sidecar_mode ? 'ホストの作成' : 'ビジターを追加'" chevron @click="mode = 'host'" />
-            <SettingsRow label="ホストに接続" chevron @click="clickConnect" v-if="store.sidecar_mode !== 'host'" />
+        <SettingsSection title="SideCar" v-if="sidecar_store.sidecar_mode !== 'visitor'">
+            <SettingsRow :label="!sidecar_store.sidecar_mode ? 'ホストの作成' : 'ビジターを追加'" chevron @click="mode = 'host'" />
+            <SettingsRow label="ホストに接続" chevron @click="clickConnect" v-if="sidecar_store.sidecar_mode !== 'host'" />
         </SettingsSection>
-        <SettingsSection v-if="!!store.sidecar_mode">
+        <SettingsSection v-if="!!sidecar_store.sidecar_mode">
             <SettingsRow label="SideCarを切断" danger chevron @click="disconnect()" />
         </SettingsSection>
-        <SettingsSection v-if="store.sidecar_mode == 'host'" title="接続中のデバイス">
+        <SettingsSection v-if="sidecar_store.sidecar_mode == 'host'" title="接続中のデバイス">
             <SettingsRow v-for="value in sidecar_store.connections" :label="value.device_info?.name ?? 'Unknown'"
                 chevron @click="close(value.device_info?.name, value.id)" :key="value.id" />
         </SettingsSection>

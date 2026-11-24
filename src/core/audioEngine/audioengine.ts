@@ -8,7 +8,7 @@ import {
 import { Err, Ok, type Result } from "../types/types";
 import { generateUUID } from "../util/util";
 import { AudioEngineError, AudioMixerError } from "../types/err";
-import { useEngineState, type BGMPlayerInfo } from "../store/enginestore";
+import { usePlaybackState, type BGMPlayerInfo } from "../store/playbackstore";
 import { useConfigStore } from "../store/configstore";
 import { UNGROUPED } from "../constants";
 
@@ -503,7 +503,7 @@ export class AudioEngine extends EventTarget {
     set_gain(id: string, gain: number): Result<number, AudioMixerError> {
         this.library.set_gain(id, gain);
         const res = this.mixer.set_gain(id, gain);
-        const { ducking } = useEngineState();
+        const { ducking } = usePlaybackState();
         if (ducking) this.before_ducking_gain = gain;
         return res;
     }

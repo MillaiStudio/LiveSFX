@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { ProjectManager } from '@/core';
 import { useConfigStore } from '@/core/store/configstore';
-import { useEngineState } from '@/core/store/enginestore';
+import { usePlaybackState } from '@/core/store/playbackstore';
+import { useSideCarStore } from '@/core/store/sidecar_store';
 import Toggle from './toggle.vue';
 import { useUiState } from '@/core/store/ui_state.ts';
 import { EngineCommands } from '@/core/audioEngine/commands.ts';
 
 const configstore = useConfigStore();
-const engine_store = useEngineState();
+const engine_store = usePlaybackState();
+const sidecar_store = useSideCarStore();
 const ui_store = useUiState();
 
 const toggle_ui_mode = () => {
@@ -32,7 +34,7 @@ const requestDucking = () => {
             <label style="margin-inline-end: 1rem;">ダッキング</label>
             <Toggle :model-value="engine_store.ducking" @clicked="requestDucking" />
         </div>
-        <button v-if="engine_store.sidecar_mode !== 'visitor'" @click="toggle_ui_mode()">{{ ui_store.ui_mode ==
+        <button v-if="sidecar_store.sidecar_mode !== 'visitor'" @click="toggle_ui_mode()">{{ ui_store.ui_mode ==
             "live" ? "編集" : "完了" }}</button>
     </div>
 </template>

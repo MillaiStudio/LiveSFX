@@ -1,6 +1,6 @@
 import type { SoundMeta } from "../audioEngine/sounds";
 import type { MixerChannelSnapshot } from "../audioEngine/mixer";
-import { useEngineState } from "../store/enginestore";
+import { usePlaybackState } from "../store/playbackstore";
 import { EngineEvent, Err, Ok, type Result } from "../types/types";
 import { AudioMixerError } from "../types/err";
 import {
@@ -9,7 +9,7 @@ import {
     type SideCarStateSnapshot,
     SideCarEvent,
 } from "./sidecar";
-import type { BGMPlayerInfo } from "../store/enginestore";
+import type { BGMPlayerInfo } from "../store/playbackstore";
 import { PlayerEvent, type DeckID } from "../audioEngine/audioengine";
 
 type SideCarLibraryState = Pick<
@@ -72,7 +72,7 @@ export class SideCarVisitorRelay {
     private applySnapshot(state: SideCarStateSnapshot) {
         this.applyLibraryState(state);
         this.mirror.deck = [state.deck[0], state.deck[1]];
-        useEngineState().$patch({
+        usePlaybackState().$patch({
             playing_sfx: state.playing_sfx,
             deck: state.deck,
             ducking: state.ducking,
